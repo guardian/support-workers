@@ -12,7 +12,7 @@ import com.gu.support.workers.LambdaSpec
 import com.gu.support.workers.encoding.Encoding
 import com.gu.support.workers.encoding.StateCodecs._
 import com.gu.support.workers.exceptions.RetryNone
-import com.gu.support.workers.model.monthlyContributions.state.CreateSalesforceContactState
+import com.gu.support.workers.model.states.CreateSalesforceContactState
 import com.gu.support.workers.model.{CreditCardReferenceTransaction, PayPalReferenceTransaction, PaymentMethod}
 import com.gu.test.tags.objects.IntegrationTest
 import com.gu.zuora.encoding.CustomCodecs._

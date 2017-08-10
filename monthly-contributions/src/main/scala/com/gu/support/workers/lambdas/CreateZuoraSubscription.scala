@@ -5,7 +5,8 @@ import com.gu.config.Configuration.zuoraConfigProvider
 import com.gu.monitoring.products.RecurringContributionsMetrics
 import com.gu.services.{ServiceProvider, Services}
 import com.gu.support.workers.encoding.StateCodecs._
-import com.gu.support.workers.model.monthlyContributions.state.{CreateZuoraSubscriptionState, SendThankYouEmailState}
+import com.gu.support.workers.model.Contribution
+import com.gu.support.workers.model.states.{CreateZuoraSubscriptionState, SendThankYouEmailState}
 import com.gu.zuora.model._
 import com.gu.zuora.model.response.{Subscription => SubscriptionResponse}
 import com.typesafe.scalalogging.LazyLogging
@@ -42,7 +43,7 @@ class CreateZuoraSubscription(servicesProvider: ServiceProvider = ServiceProvide
     SendThankYouEmailState(
       state.requestId,
       state.user,
-      state.contribution,
+      state.product,
       state.paymentMethod,
       state.salesForceContact,
       accountNumber
@@ -52,9 +53,14 @@ class CreateZuoraSubscription(servicesProvider: ServiceProvider = ServiceProvide
     //Documentation for this request is here: https://www.zuora.com/developer/api-reference/#operation/Action_POSTsubscribe
     val config = zuoraConfigProvider.get(state.user.isTestUser)
 
+    //TODO:
+    val product = state.product match {
+      case m: Contribution => m
+      case _ => throw new NotImplementedError("Monthly contributions are the only implemented product")
+    }
     val account = Account(
       state.salesForceContact.AccountId, //We store the Salesforce Account id in the name field
-      state.contribution.currency,
+      state.product.currency,
       state.salesForceContact.AccountId, //Somewhere else we store the Salesforce Account id
       state.salesForceContact.Id,
       state.user.id,
@@ -76,7 +82,7 @@ class CreateZuoraSubscription(servicesProvider: ServiceProvider = ServiceProvide
         RatePlanData(
           RatePlan(config.productRatePlanId),
           List(RatePlanChargeData(
-            RatePlanCharge(config.productRatePlanChargeId, Some(state.contribution.amount)) //Pass the amount the user selected into Zuora
+            RatePlanCharge(config.productRatePlanChargeId, Some(product.amount)) //Pass the amount the user selected into Zuora
           )),
           Nil
         )

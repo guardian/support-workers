@@ -7,9 +7,8 @@ import com.gu.emailservices.{EmailFields, EmailService}
 import com.gu.helpers.FutureExtensions._
 import com.gu.support.workers.encoding.ErrorJson
 import com.gu.support.workers.encoding.StateCodecs._
-import com.gu.support.workers.model.ExecutionError
-import com.gu.support.workers.model.monthlyContributions.Status
-import com.gu.support.workers.model.monthlyContributions.state.{CompletedState, FailureHandlerState}
+import com.gu.support.workers.model.{ExecutionError, Status}
+import com.gu.support.workers.model.states.{CompletedState, FailureHandlerState}
 import com.gu.zuora.model.response.ZuoraErrorResponse
 import com.typesafe.scalalogging.LazyLogging
 import io.circe.parser._
@@ -30,8 +29,8 @@ class FailureHandler(emailService: EmailService)
     emailService.send(EmailFields(
       email = state.user.primaryEmailAddress,
       created = DateTime.now(),
-      amount = state.contribution.amount,
-      currency = state.contribution.currency.iso,
+      amount = 0, //TODO? It's not actually used by the email, maybe remove it?
+      currency = state.product.currency.iso,
       edition = state.user.country.alpha2,
       name = state.user.firstName,
       product = "monthly-contribution"
@@ -40,7 +39,7 @@ class FailureHandler(emailService: EmailService)
       CompletedState(
         requestId = state.requestId,
         user = state.user,
-        contribution = state.contribution,
+        product = state.product,
         status = Status.Failure,
         message = Some(error.flatMap(messageFromExecutionError).getOrElse(defaultErrorMessage))
       )

@@ -1,14 +1,13 @@
 package com.gu.support.workers.lambdas
 
-import com.gu.support.workers.model.monthlyContributions.state.UpdateMembersDataAPIState
-import com.typesafe.scalalogging.LazyLogging
 import com.amazonaws.services.lambda.runtime.Context
-import com.gu.services.{ServiceProvider, Services}
 import com.gu.monitoring.MembersDataAPIMetrics
+import com.gu.services.{ServiceProvider, Services}
+import com.gu.support.workers.encoding.StateCodecs._
+import com.gu.support.workers.model.states.UpdateMembersDataAPIState
+import com.typesafe.scalalogging.LazyLogging
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import com.gu.support.workers.encoding.StateCodecs._
-
 import scala.concurrent.Future
 
 class UpdateMembersDataAPI(servicesProvider: ServiceProvider = ServiceProvider)

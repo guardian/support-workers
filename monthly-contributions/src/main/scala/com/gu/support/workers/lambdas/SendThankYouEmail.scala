@@ -5,7 +5,7 @@ import com.gu.config.Configuration
 import com.gu.emailservices.{EmailFields, EmailService}
 import com.gu.support.workers.encoding.StateCodecs._
 import com.gu.support.workers.model.ExecutionError
-import com.gu.support.workers.model.monthlyContributions.state.SendThankYouEmailState
+import com.gu.support.workers.model.states.SendThankYouEmailState
 import com.gu.zuora.encoding.CustomCodecs._
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
@@ -26,11 +26,11 @@ class SendThankYouEmail(thankYouEmailService: EmailService)
     thankYouEmailService.send(EmailFields(
       email = state.user.primaryEmailAddress,
       created = DateTime.now(),
-      amount = state.contribution.amount,
-      currency = state.contribution.currency.iso,
+      amount = 0, //TODO? It's not actually used by the email, maybe remove it?
+      currency = state.product.currency.iso,
       edition = state.user.country.alpha2,
       name = state.user.firstName,
-      product = "monthly-contribution"
+      product = state.product.toString
     )).map(_ => Unit)
   }
 }

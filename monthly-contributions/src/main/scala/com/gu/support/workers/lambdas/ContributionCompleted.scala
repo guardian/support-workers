@@ -2,9 +2,8 @@ package com.gu.support.workers.lambdas
 
 import com.amazonaws.services.lambda.runtime.Context
 import com.gu.support.workers.encoding.StateCodecs._
-import com.gu.support.workers.model.ExecutionError
-import com.gu.support.workers.model.monthlyContributions.state.{CompletedState, SendThankYouEmailState}
-import com.gu.support.workers.model.monthlyContributions.Status
+import com.gu.support.workers.model.{ExecutionError, Status}
+import com.gu.support.workers.model.states.{CompletedState, SendThankYouEmailState}
 import com.typesafe.scalalogging.LazyLogging
 
 class ContributionCompleted
@@ -24,7 +23,7 @@ class ContributionCompleted
     CompletedState(
       requestId = state.requestId,
       user = state.user,
-      contribution = state.contribution,
+      product = state.product,
       status = Status.Success,
       message = None
     )
