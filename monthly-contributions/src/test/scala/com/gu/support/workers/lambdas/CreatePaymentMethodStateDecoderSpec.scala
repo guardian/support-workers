@@ -1,15 +1,13 @@
 package com.gu.support.workers.lambdas
 
-import java.util.UUID
-
 import com.gu.i18n.Currency.GBP
-import com.gu.i18n.{Country, Currency}
 import com.gu.support.workers.Fixtures.{validBaid, _}
 import com.gu.support.workers.encoding.StateCodecs._
 import com.gu.support.workers.model._
 import com.gu.support.workers.model.states.CreatePaymentMethodState
 import com.gu.zuora.encoding.CustomCodecs._
 import com.typesafe.scalalogging.LazyLogging
+import io.circe.Json
 import io.circe.parser._
 import io.circe.syntax._
 import org.scalatest.mockito.MockitoSugar
@@ -17,19 +15,9 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class CreatePaymentMethodStateDecoderSpec extends FlatSpec with Matchers with MockitoSugar with LazyLogging {
 
-  "Encode" should "work" in {
-    val state = CreatePaymentMethodState(UUID.randomUUID(),
-      User("123", "test@gu.com", "test", "user", Country.UK, None, allowMembershipMail = true,
-        allowThirdPartyMail = false, allowGURelatedMail = true, isTestUser = true),
-      Contribution(Currency.GBP, Monthly, 5),
-      PayPalPaymentFields(validBaid))
-    logger.info(s"${state.asJson}")
-  }
-
-  "Product" should "be decodable" in {
+  "Monthly Contribution Product" should "be decodable" in {
     val product: ProductType = Contribution(GBP, Monthly, 5)
-    val json = product.asJson
-    logger.info(json.spaces2)
+    assertCodecIsValid(product.asJson)
     /*
     {
       "currency" : "GBP",
@@ -38,6 +26,35 @@ class CreatePaymentMethodStateDecoderSpec extends FlatSpec with Matchers with Mo
       "type" : "Contribution"
     }
      */
+  }
+
+  "Annual DigitalBundle Product" should "be decodable" in {
+    val product: ProductType = DigitalBundle(GBP, Annual)
+    assertCodecIsValid(product.asJson)
+    /*
+    {
+      "currency" : "GBP",
+      "period" : "Annual",
+      "type" : "DigitalBundle"
+    }
+     */
+  }
+
+  "Quarterly Contribution Product" should "be decodable" in {
+    val product: ProductType = Contribution(GBP, Quarterly, 150)
+    assertCodecIsValid(product.asJson)
+    /*
+    {
+      "currency" : "GBP",
+      "period" : "Quarterly",
+      "amount" : 150,
+      "type" : "Contribution"
+    }
+     */
+  }
+
+  private def assertCodecIsValid(json: Json) = {
+    logger.info(json.spaces2)
     val product2 = decode[ProductType](json.noSpaces)
     product2.isRight should be(true) //decoding succeeded
   }
