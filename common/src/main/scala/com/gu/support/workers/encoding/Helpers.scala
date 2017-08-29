@@ -12,4 +12,5 @@ object Helpers {
 
   def capitalizingCodec[A](implicit decode: Lazy[DerivedDecoder[A]], encode: Lazy[DerivedObjectEncoder[A]]): Codec[A] =
     new Codec(capitalizingEncoder, decapitalizingDecoder)
+
 }

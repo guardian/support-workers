@@ -8,6 +8,7 @@ import com.gu.support.workers.encoding.Wrapper
 import com.gu.support.workers.encoding.Wrapper.jsonCodec
 import io.circe.syntax._
 
+//noinspection TypeAnnotation
 object Fixtures {
   def wrapFixture(string: String): ByteArrayInputStream = Wrapper.wrapString(string).asJson.noSpaces.asInputStream
 
@@ -42,8 +43,15 @@ object Fixtures {
     """
       {
         "amount": 5,
-        "currency": "GBP"
+        "currency": "GBP",
+        "period" : "Monthly",
+        "type" : "Contribution"
       }
+    """
+
+  val contributionProductJson =
+    s"""
+      "product": $contributionJson
     """
 
   val payPalJson =
@@ -65,7 +73,7 @@ object Fixtures {
     s"""{
           $requestIdJson,
           $userJson,
-          "contribution": $contributionJson,
+          $contributionProductJson,
           "paymentFields": $payPalJson
         }"""
 
@@ -73,7 +81,7 @@ object Fixtures {
     s"""{
           $requestIdJson,
           $userJson,
-          "contribution": $contributionJson,
+          $contributionProductJson,
           "paymentFields": $stripeJson
         }"""
 
@@ -82,7 +90,7 @@ object Fixtures {
           {
             $requestIdJson,
             $userJson,
-            "contribution": $contributionJson,
+            $contributionProductJson,
             "paymentMethod": $payPalPaymentMethod
           }
         """
@@ -91,7 +99,7 @@ object Fixtures {
     s"""{
        |  $requestIdJson,
        |  $userJson,
-       |  "contribution": $contributionJson,
+       |  $contributionProductJson,
        |  "paymentMethod": $payPalPaymentMethod,
        |  "salesForceContact": {
        |    "Id": "123",
@@ -120,7 +128,7 @@ object Fixtures {
           {
             $requestIdJson,
             $userJson,
-            "contribution": $contributionJson,
+            $contributionProductJson,
             "paymentMethod": $payPalPaymentMethod,
             "salesForceContact": $salesforceContactJson
             }
@@ -136,7 +144,7 @@ object Fixtures {
     s"""{
        |  $requestIdJson,
        |  $userJson,
-       |  "contribution": $contributionJson,
+       |  $contributionProductJson,
        |  "error": {
        |    "Error": "com.gu.support.workers.exceptions.ErrorHandler.logAndRethrow(ErrorHandler.scala:33)",
        |    "Cause": "The card has expired"

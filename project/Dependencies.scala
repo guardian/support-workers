@@ -1,5 +1,6 @@
 import sbt._
 
+//noinspection TypeAnnotation
 object Dependencies {
   val circeVersion = "0.7.0"
   val awsVersion = "1.11.131"
