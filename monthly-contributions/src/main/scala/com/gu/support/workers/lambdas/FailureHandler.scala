@@ -7,8 +7,8 @@ import com.gu.emailservices.{EmailFields, EmailService}
 import com.gu.helpers.FutureExtensions._
 import com.gu.support.workers.encoding.ErrorJson
 import com.gu.support.workers.encoding.StateCodecs._
-import com.gu.support.workers.model.{ExecutionError, Status}
 import com.gu.support.workers.model.states.{CompletedState, FailureHandlerState}
+import com.gu.support.workers.model.{ExecutionError, Status}
 import com.gu.zuora.model.response.ZuoraErrorResponse
 import com.typesafe.scalalogging.LazyLogging
 import io.circe.parser._
@@ -24,7 +24,7 @@ class FailureHandler(emailService: EmailService)
 
   override protected def handlerFuture(state: FailureHandlerState, error: Option[ExecutionError], context: Context): Future[CompletedState] = {
     logger.info(
-      s"FAILED contribution_amount: ${state.contribution.amount} contribution_currency: ${state.contribution.currency.iso} test_user: ${state.user.isTestUser}"
+      s"FAILED product: ${state.product.describe} test_user: ${state.user.isTestUser}"
     )
     emailService.send(EmailFields(
       email = state.user.primaryEmailAddress,

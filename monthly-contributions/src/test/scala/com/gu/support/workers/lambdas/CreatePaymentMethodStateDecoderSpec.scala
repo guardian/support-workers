@@ -18,7 +18,7 @@ class CreatePaymentMethodStateDecoderSpec extends FlatSpec with Matchers with Mo
 
   "Encode" should "work" in {
     val state = CreatePaymentMethodState(UUID.randomUUID(),
-      User("123", "test@gu.com", "test", "user", Country.UK, true, false, true, true),
+      User("123", "test@gu.com", "test", "user", Country.UK, None, true, false, true, true),
       Contribution(Currency.GBP, Monthly, 5),
       PayPalPaymentFields(validBaid))
     logger.info(s"${state.asJson}")
