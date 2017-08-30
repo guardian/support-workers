@@ -59,8 +59,8 @@ class CreatePaymentMethodStateDecoderSpec extends FlatSpec with Matchers with Mo
     product2.isRight should be(true) //decoding succeeded
   }
 
-  "CreatePaymentMethodStateDecoder" should "be able to decode a CreatePaymentMethodStateDecoder with PayPal payment fields" in {
-    val state = decode[CreatePaymentMethodState](createPayPalPaymentMethodJson)
+  "CreatePaymentMethodStateDecoder" should "be able to decode a contribution with PayPal payment fields" in {
+    val state = decode[CreatePaymentMethodState](createPayPalPaymentMethodDigitalBundleJson)
     val result = state.right.get
     result.product match {
       case contribution: Contribution => contribution.amount should be(5)
@@ -73,8 +73,8 @@ class CreatePaymentMethodStateDecoderSpec extends FlatSpec with Matchers with Mo
 
   }
 
-  it should "be able to decode a CreatePaymentMethodStateDecoder with Stripe payment fields" in {
-    val state = decode[CreatePaymentMethodState](createStripePaymentMethodJson)
+  it should "be able to decode a contribution with Stripe payment fields" in {
+    val state = decode[CreatePaymentMethodState](createStripePaymentMethodContributionJson)
     val result = state.right.get
     result.product match {
       case contribution: Contribution => contribution.amount should be(5)
@@ -82,6 +82,32 @@ class CreatePaymentMethodStateDecoderSpec extends FlatSpec with Matchers with Mo
     }
     result.paymentFields match {
       case stripe: StripePaymentFields => stripe.stripeToken should be(stripeToken)
+      case _ => fail()
+    }
+  }
+
+  it should "be able to decode a DigtalBundle with PayPal payment fields" in {
+    val state = decode[CreatePaymentMethodState](createPayPalPaymentMethodDigitalBundleJson)
+    val result = state.right.get
+    result.product match {
+      case digitalBundle: DigitalBundle => digitalBundle.period should be(Annual)
+      case _ => fail()
+    }
+    result.paymentFields match {
+      case paypal: PayPalPaymentFields => paypal.baid should be(validBaid)
+      case _ => fail()
+    }
+  }
+
+  it should "be able to decode a DigtalBundle with Direct Debit payment fields" in {
+    val state = decode[CreatePaymentMethodState](createDirectDebitDigitalBundleJson)
+    val result = state.right.get
+    result.product match {
+      case digitalBundle: DigitalBundle => digitalBundle.period should be(Annual)
+      case _ => fail()
+    }
+    result.paymentFields match {
+      case dd: DirectDebitPaymentFields => dd.accountName should be(mickeyMouse)
       case _ => fail()
     }
   }

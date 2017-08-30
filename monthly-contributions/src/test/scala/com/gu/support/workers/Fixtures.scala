@@ -49,27 +49,52 @@ object Fixtures {
       }
     """
 
+  val digitalBundleJson =
+    """
+      {
+        "currency": "GBP",
+        "period" : "Annual",
+        "type" : "DigitalBundle"
+      }
+    """
+
   val contributionProductJson =
     s"""
       "product": $contributionJson
     """
 
+  val digitalBundleProductJson =
+    s"""
+      "product": $digitalBundleJson
+    """
+
   val payPalJson =
     s"""
-                {
-                  "baid": "$validBaid"
-                }
-                """
+      {
+        "baid": "$validBaid"
+      }
+    """
+
+  val mickeyMouse = "Mickey Mouse"
+  val directDebitJson =
+    s"""
+      {
+        "sortcode": "111111",
+        "accountNumber": "99999999",
+        "accountName": "$mickeyMouse"
+      }
+    """
+
   val stripeToken = "tok_AXY4M16p60c2sg"
   val stripeJson =
     s"""
-                {
-                  "userId": "12345",
-                  "stripeToken": "$stripeToken"
-                }
-                """
+      {
+        "userId": "12345",
+        "stripeToken": "$stripeToken"
+      }
+    """
 
-  val createPayPalPaymentMethodJson =
+  val createPayPalPaymentMethodContributionJson =
     s"""{
           $requestIdJson,
           $userJson,
@@ -77,12 +102,28 @@ object Fixtures {
           "paymentFields": $payPalJson
         }"""
 
-  val createStripePaymentMethodJson =
+  val createStripePaymentMethodContributionJson =
     s"""{
           $requestIdJson,
           $userJson,
           $contributionProductJson,
           "paymentFields": $stripeJson
+        }"""
+
+  val createPayPalPaymentMethodDigitalBundleJson =
+    s"""{
+          $requestIdJson,
+          $userJson,
+          $digitalBundleProductJson,
+          "paymentFields": $payPalJson
+        }"""
+
+  val createDirectDebitDigitalBundleJson =
+    s"""{
+          $requestIdJson,
+          $userJson,
+          $digitalBundleProductJson,
+          "paymentFields": $directDebitJson
         }"""
 
   val createSalesForceContactJson =

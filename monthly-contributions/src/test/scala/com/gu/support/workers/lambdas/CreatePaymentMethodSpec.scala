@@ -29,7 +29,7 @@ class CreatePaymentMethodSpec extends LambdaSpec {
 
     val outStream = new ByteArrayOutputStream()
 
-    createPaymentMethod.handleRequest(wrapFixture(createPayPalPaymentMethodJson), outStream, context)
+    createPaymentMethod.handleRequest(wrapFixture(createPayPalPaymentMethodDigitalBundleJson), outStream, context)
 
     //Check the output
     val createSalesforceContactState = Encoding.in[CreateSalesforceContactState](outStream.toInputStream)
@@ -49,7 +49,7 @@ class CreatePaymentMethodSpec extends LambdaSpec {
 
     val outStream = new ByteArrayOutputStream()
 
-    createPaymentMethod.handleRequest(wrapFixture(createStripePaymentMethodJson), outStream, context)
+    createPaymentMethod.handleRequest(wrapFixture(createStripePaymentMethodContributionJson), outStream, context)
 
     //Check the output
     val createSalesforceContactState = Encoding.in[CreateSalesforceContactState](outStream.toInputStream)
@@ -76,7 +76,7 @@ class CreatePaymentMethodSpec extends LambdaSpec {
     }
   }
 
-  lazy val mockServices = {
+  lazy private val mockServices = {
     //Mock the stripe service as we cannot actually create a customer
     val serviceProvider = mock[ServiceProvider]
     val services = mock[Services]
