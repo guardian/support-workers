@@ -5,6 +5,7 @@ import java.util.Base64
 
 import cats.syntax.either._
 import com.gu.support.workers.encoding.Encryption._
+import com.gu.support.workers.encoding.StateMigration.migrate
 import com.gu.support.workers.encoding.Wrapper._
 import com.gu.support.workers.model.ExecutionError
 
@@ -21,7 +22,8 @@ private[workers] object Encoding {
       wrapper <- unWrap(is)
       state <- Try(Base64.getDecoder.decode(wrapper.state))
       decrypted <- Try(decrypt(state))
-      result <- decode[T](decrypted).toTry
+      migrated <- Try(migrate(decrypted))
+      result <- decode[T](migrated).toTry
     } yield (result, wrapper.error)
 
   def out[T](value: T, os: OutputStream)(implicit encoder: Encoder[T]): Try[Unit] = {
