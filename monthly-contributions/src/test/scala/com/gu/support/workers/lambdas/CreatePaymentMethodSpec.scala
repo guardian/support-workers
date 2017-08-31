@@ -12,7 +12,7 @@ import com.gu.support.workers.LambdaSpec
 import com.gu.support.workers.encoding.Encoding
 import com.gu.support.workers.encoding.StateCodecs._
 import com.gu.support.workers.exceptions.RetryNone
-import com.gu.support.workers.model.monthlyContributions.state.CreateSalesforceContactState
+import com.gu.support.workers.model.states.CreateSalesforceContactState
 import com.gu.support.workers.model.{CreditCardReferenceTransaction, PayPalReferenceTransaction, PaymentMethod}
 import com.gu.test.tags.objects.IntegrationTest
 import com.gu.zuora.encoding.CustomCodecs._
@@ -29,7 +29,7 @@ class CreatePaymentMethodSpec extends LambdaSpec {
 
     val outStream = new ByteArrayOutputStream()
 
-    createPaymentMethod.handleRequest(wrapFixture(createPayPalPaymentMethodJson), outStream, context)
+    createPaymentMethod.handleRequest(wrapFixture(createPayPalPaymentMethodDigitalBundleJson), outStream, context)
 
     //Check the output
     val createSalesforceContactState = Encoding.in[CreateSalesforceContactState](outStream.toInputStream)
@@ -49,7 +49,7 @@ class CreatePaymentMethodSpec extends LambdaSpec {
 
     val outStream = new ByteArrayOutputStream()
 
-    createPaymentMethod.handleRequest(wrapFixture(createStripePaymentMethodJson), outStream, context)
+    createPaymentMethod.handleRequest(wrapFixture(createStripePaymentMethodContributionJson), outStream, context)
 
     //Check the output
     val createSalesforceContactState = Encoding.in[CreateSalesforceContactState](outStream.toInputStream)
@@ -76,7 +76,7 @@ class CreatePaymentMethodSpec extends LambdaSpec {
     }
   }
 
-  lazy val mockServices = {
+  lazy private val mockServices = {
     //Mock the stripe service as we cannot actually create a customer
     val serviceProvider = mock[ServiceProvider]
     val services = mock[Services]

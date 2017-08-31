@@ -8,6 +8,7 @@ import com.gu.support.workers.encoding.Wrapper
 import com.gu.support.workers.encoding.Wrapper.jsonCodec
 import io.circe.syntax._
 
+//noinspection TypeAnnotation
 object Fixtures {
   def wrapFixture(string: String): ByteArrayInputStream = Wrapper.wrapString(string).asJson.noSpaces.asInputStream
 
@@ -42,39 +43,87 @@ object Fixtures {
     """
       {
         "amount": 5,
-        "currency": "GBP"
+        "currency": "GBP",
+        "period" : "Monthly",
+        "type" : "Contribution"
       }
+    """
+
+  val digitalBundleJson =
+    """
+      {
+        "currency": "GBP",
+        "period" : "Annual",
+        "type" : "DigitalBundle"
+      }
+    """
+
+  val contributionProductJson =
+    s"""
+      "product": $contributionJson
+    """
+
+  val digitalBundleProductJson =
+    s"""
+      "product": $digitalBundleJson
     """
 
   val payPalJson =
     s"""
-                {
-                  "baid": "$validBaid"
-                }
-                """
+      {
+        "baid": "$validBaid"
+      }
+    """
+
+  val mickeyMouse = "Mickey Mouse"
+  val directDebitJson =
+    s"""
+      {
+        "sortcode": "111111",
+        "accountNumber": "99999999",
+        "accountName": "$mickeyMouse"
+      }
+    """
+
   val stripeToken = "tok_AXY4M16p60c2sg"
   val stripeJson =
     s"""
-                {
-                  "userId": "12345",
-                  "stripeToken": "$stripeToken"
-                }
-                """
+      {
+        "userId": "12345",
+        "stripeToken": "$stripeToken"
+      }
+    """
 
-  val createPayPalPaymentMethodJson =
+  val createPayPalPaymentMethodContributionJson =
     s"""{
           $requestIdJson,
           $userJson,
-          "contribution": $contributionJson,
+          $contributionProductJson,
           "paymentFields": $payPalJson
         }"""
 
-  val createStripePaymentMethodJson =
+  val createStripePaymentMethodContributionJson =
     s"""{
           $requestIdJson,
           $userJson,
-          "contribution": $contributionJson,
+          $contributionProductJson,
           "paymentFields": $stripeJson
+        }"""
+
+  val createPayPalPaymentMethodDigitalBundleJson =
+    s"""{
+          $requestIdJson,
+          $userJson,
+          $digitalBundleProductJson,
+          "paymentFields": $payPalJson
+        }"""
+
+  val createDirectDebitDigitalBundleJson =
+    s"""{
+          $requestIdJson,
+          $userJson,
+          $digitalBundleProductJson,
+          "paymentFields": $directDebitJson
         }"""
 
   val createSalesForceContactJson =
@@ -82,7 +131,7 @@ object Fixtures {
           {
             $requestIdJson,
             $userJson,
-            "contribution": $contributionJson,
+            $contributionProductJson,
             "paymentMethod": $payPalPaymentMethod
           }
         """
@@ -91,7 +140,7 @@ object Fixtures {
     s"""{
        |  $requestIdJson,
        |  $userJson,
-       |  "contribution": $contributionJson,
+       |  $contributionProductJson,
        |  "paymentMethod": $payPalPaymentMethod,
        |  "salesForceContact": {
        |    "Id": "123",
@@ -120,7 +169,7 @@ object Fixtures {
           {
             $requestIdJson,
             $userJson,
-            "contribution": $contributionJson,
+            $contributionProductJson,
             "paymentMethod": $payPalPaymentMethod,
             "salesForceContact": $salesforceContactJson
             }
@@ -136,7 +185,7 @@ object Fixtures {
     s"""{
        |  $requestIdJson,
        |  $userJson,
-       |  "contribution": $contributionJson,
+       |  $contributionProductJson,
        |  "error": {
        |    "Error": "com.gu.support.workers.exceptions.ErrorHandler.logAndRethrow(ErrorHandler.scala:33)",
        |    "Cause": "The card has expired"

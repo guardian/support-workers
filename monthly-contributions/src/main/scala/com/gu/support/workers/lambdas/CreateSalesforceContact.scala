@@ -5,7 +5,7 @@ import com.gu.salesforce.Salesforce.UpsertData
 import com.gu.services.Services
 import com.gu.support.workers.encoding.StateCodecs._
 import com.gu.support.workers.exceptions.SalesforceException
-import com.gu.support.workers.model.monthlyContributions.state.{CreateSalesforceContactState, CreateZuoraSubscriptionState}
+import com.gu.support.workers.model.states.{CreateSalesforceContactState, CreateZuoraSubscriptionState}
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -24,7 +24,7 @@ class CreateSalesforceContact extends ServicesHandler[CreateSalesforceContactSta
       state.user.allowThirdPartyMail
     )).map(response =>
       if (response.Success) {
-        CreateZuoraSubscriptionState(state.requestId, state.user, state.contribution, state.paymentMethod, response.ContactRecord)
+        CreateZuoraSubscriptionState(state.requestId, state.user, state.product, state.paymentMethod, response.ContactRecord)
       } else {
         val errorMessage = response.ErrorString.getOrElse("No error message returned")
         logger.warn(s"Error creating Salesforce contact:\n$errorMessage")

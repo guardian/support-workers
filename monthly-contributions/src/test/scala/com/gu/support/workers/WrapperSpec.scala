@@ -2,8 +2,8 @@ package com.gu.support.workers
 
 import com.gu.support.workers.Fixtures.{contributionJson, wrapFixture}
 import com.gu.support.workers.encoding.Encoding
-import com.gu.support.workers.model.monthlyContributions.Contribution
-import com.gu.zuora.encoding.CustomCodecs.codecContribution
+import com.gu.support.workers.model.Contribution
+import com.gu.zuora.encoding.CustomCodecs._
 import org.scalatest.{FlatSpec, Matchers}
 
 class WrapperSpec extends FlatSpec with Matchers {
