@@ -24,7 +24,7 @@ class ContributionCompleted
     )
 
     logger.info(fields.map({ case (k, v) => s"$k: $v" }).mkString("SUCCESS ", " ", ""))
-    putContributionCompleted(state.paymentMethod.`type`)
+    putContributionCompleted(state.paymentMethod.toString)
 
     CompletedState(
       requestId = state.requestId,
@@ -35,8 +35,15 @@ class ContributionCompleted
     )
   }
 
-  def putContributionCompleted(paymentMethod: String): Future[Unit] =
-    new RecurringContributionsMetrics(paymentMethod.toLowerCase, "monthly")
+  def putContributionCompleted(paymentMethod: String): Future[Unit] = {
+    val paymentMethodLabel = {
+      if(paymentMethod.contains("CreditCardReferenceTransaction"))
+        "stripe"
+      else
+        "paypal"
+    }
+    new RecurringContributionsMetrics(paymentMethodLabel, "monthly")
       .putContributionCompleted().recover({ case _ => () })
+  }
 
 }

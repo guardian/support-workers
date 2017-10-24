@@ -96,7 +96,14 @@ class CreateZuoraSubscription(servicesProvider: ServiceProvider = ServiceProvide
     ))
   }
 
-  def putZuoraAccountCreated(paymentMethod: String): Future[Unit] =
-    new RecurringContributionsMetrics(paymentMethod.toLowerCase, "monthly")
+  def putZuoraAccountCreated(paymentMethod: String): Future[Unit] = {
+    val paymentMethodLabel = {
+      if(paymentMethod.contains("CreditCardReferenceTransaction"))
+        "stripe"
+      else
+        "paypal"
+    }
+    new RecurringContributionsMetrics(paymentMethodLabel.toLowerCase, "monthly")
       .putZuoraAccountCreated().recover({ case _ => () })
+  }
 }

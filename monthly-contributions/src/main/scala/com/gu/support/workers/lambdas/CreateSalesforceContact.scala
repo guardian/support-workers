@@ -47,8 +47,15 @@ class CreateSalesforceContact extends ServicesHandler[CreateSalesforceContactSta
       state.acquisitionData
     )
 
-  def putSalesForceContactCreated(paymentMethod: String): Future[Unit] =
-    new RecurringContributionsMetrics(paymentMethod.toLowerCase, "monthly")
+  def putSalesForceContactCreated(paymentMethod: String): Future[Unit] = {
+    val paymentMethodLabel = {
+      if(paymentMethod.contains("CreditCardReferenceTransaction"))
+        "stripe"
+      else
+        "paypal"
+    }
+    new RecurringContributionsMetrics(paymentMethodLabel, "monthly")
       .putSalesforceContactCreated().recover({ case _ => () })
+  }
 
 }
