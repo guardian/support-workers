@@ -36,7 +36,14 @@ class SendThankYouEmail(thankYouEmailService: EmailService)
     )).map(_ => Unit)
   }
 
-  def putThankYouEmailSent(paymentMethod: String): Future[Unit] =
-    new RecurringContributionsMetrics(paymentMethod.toLowerCase, "monthly")
+  def putThankYouEmailSent(paymentMethod: String): Future[Unit] = {
+    val paymentMethodLabel = {
+      if(paymentMethod.contains("CreditCardReferenceTransaction"))
+        "stripe"
+      else
+        "paypal"
+    }
+    new RecurringContributionsMetrics(paymentMethodLabel.toLowerCase, "monthly")
       .putThankYouEmailSent().recover({ case _ => () })
+  }
 }
