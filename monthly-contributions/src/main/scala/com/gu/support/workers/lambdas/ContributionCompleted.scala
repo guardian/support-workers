@@ -3,7 +3,7 @@ package com.gu.support.workers.lambdas
 import com.amazonaws.services.lambda.runtime.Context
 import com.gu.support.workers.encoding.StateCodecs._
 import com.gu.support.workers.model.states.{CompletedState, SendThankYouEmailState}
-import com.gu.support.workers.model.{ExecutionError, Status}
+import com.gu.support.workers.model.{ExecutionError, RequestInfo, Status}
 import com.typesafe.scalalogging.LazyLogging
 
 class ContributionCompleted

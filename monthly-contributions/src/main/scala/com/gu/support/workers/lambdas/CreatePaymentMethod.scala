@@ -38,7 +38,7 @@ class CreatePaymentMethod(servicesProvider: ServiceProvider = ServiceProvider)
   ) =
     state.paymentFields match {
       case stripe: StripePaymentFields =>
-        createStripePaymentMethod(stripe, state.contribution.currency, services.stripeService)
+        createStripePaymentMethod(stripe, state.product.currency, services.stripeService)
       case paypal: PayPalPaymentFields =>
         createPayPalPaymentMethod(paypal, services.payPalService)
       case dd: DirectDebitPaymentFields =>
@@ -49,7 +49,7 @@ class CreatePaymentMethod(servicesProvider: ServiceProvider = ServiceProvider)
     CreateSalesforceContactState(
       state.requestId,
       state.user,
-      state.contribution,
+      state.product,
       paymentMethod,
       state.acquisitionData
     )

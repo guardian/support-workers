@@ -8,9 +8,10 @@ import com.gu.config.Configuration.stage
 import com.gu.support.config.Stages
 import com.gu.support.workers.encoding.Conversions.StringInputStreamConversions
 import com.gu.support.workers.encoding.Encoding
-import com.gu.support.workers.encoding.StateCodecs.createPaymentMethodState
+import com.gu.support.workers.encoding.StateCodecs._
 import com.gu.support.workers.model.User
-import com.gu.support.workers.model.monthlyContributions.state.CreatePaymentMethodState
+import com.gu.support.workers.model.states.CreatePaymentMethodState
+import com.gu.zuora.encoding.CustomCodecs._
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.collection.JavaConversions._
@@ -66,7 +67,7 @@ class StepFunctionsService extends LazyLogging {
       .map(_.filter(_.id == userId))
 
   private def decodeInput(execution: DescribeExecutionResult): Option[User] =
-    Encoding.in[CreatePaymentMethodState](execution.getInput.asInputStream)
+    Encoding.in[CreatePaymentMethodState](execution.getInput.asInputStream) //TODO: handle old version of state schema
       .map(_._1.user)
       .toOption
 

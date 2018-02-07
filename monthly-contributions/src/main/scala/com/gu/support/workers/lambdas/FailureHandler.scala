@@ -8,10 +8,9 @@ import com.gu.helpers.FutureExtensions._
 import com.gu.stripe.Stripe.StripeError
 import com.gu.support.workers.encoding.ErrorJson
 import com.gu.support.workers.encoding.StateCodecs._
-import com.gu.support.workers.model.ExecutionError
-import com.gu.support.workers.model.monthlyContributions.Status
-import com.gu.support.workers.model.monthlyContributions.state.{CompletedState, FailureHandlerState}
-import com.gu.zuora.model.response.ZuoraErrorResponse
+import com.gu.support.workers.model.states.{CompletedState, FailureHandlerState}
+import com.gu.support.workers.model.{ExecutionError, RequestInfo, Status}
+import com.gu.zuora.model.response.{ZuoraError, ZuoraErrorResponse}
 import com.typesafe.scalalogging.LazyLogging
 import io.circe.Decoder
 import io.circe.parser.decode
@@ -31,7 +30,7 @@ class FailureHandler(emailService: EmailService)
     context: Context
   ): FutureHandlerResult = {
     logger.info(
-      s"FAILED contribution_amount: ${state.contribution.amount} contribution_currency: ${state.contribution.currency.iso} test_user: ${state.user.isTestUser}"
+      s"FAILED product: ${state.product.describe} test_user: ${state.user.isTestUser}"
     )
     sendEmail(state).whenFinished(handleError(state, error, requestInfo))
   }
@@ -39,8 +38,8 @@ class FailureHandler(emailService: EmailService)
   private def sendEmail(state: FailureHandlerState) = emailService.send(EmailFields(
     email = state.user.primaryEmailAddress,
     created = DateTime.now(),
-    amount = state.contribution.amount,
-    currency = state.contribution.currency.iso,
+    amount = 0, //TODO: Not used by email & digital pack doesn't have it
+    currency = state.product.currency.iso,
     edition = state.user.country.alpha2,
     name = state.user.firstName,
     product = "monthly-contribution"

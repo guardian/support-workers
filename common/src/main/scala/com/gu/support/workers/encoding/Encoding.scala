@@ -22,10 +22,10 @@ object Encoding {
     for {
       wrapper <- unWrap(is)
       state <- Try(Base64.getDecoder.decode(wrapper.state))
-      decrypted <- Try(decrypt(state))
+      decrypted <- Try(decrypt(state, wrapper.requestInfo.encrypted))
       migrated <- Try(migrate(decrypted))
       result <- decode[T](migrated).toTry
-    } yield (result, wrapper.error)
+    } yield (result, wrapper.error, wrapper.requestInfo)
 
   def out[T](value: T, requestInfo: RequestInfo, os: OutputStream)(implicit encoder: Encoder[T]): Try[Unit] = {
     val t = Try(os.write(wrap(value, requestInfo).asJson.noSpaces.getBytes()))

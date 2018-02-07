@@ -4,8 +4,8 @@ import com.amazonaws.services.lambda.runtime.Context
 import com.gu.config.Configuration
 import com.gu.emailservices.{EmailFields, EmailService}
 import com.gu.support.workers.encoding.StateCodecs._
-import com.gu.support.workers.model.ExecutionError
 import com.gu.support.workers.model.states.SendThankYouEmailState
+import com.gu.support.workers.model.{ExecutionError, RequestInfo}
 import com.gu.zuora.encoding.CustomCodecs._
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime

@@ -71,7 +71,7 @@ object AuthService extends LazyLogging {
     authentication
   })
 
-  private def storeAuth(authentication: Authentication, stage: String) = atomic { implicit txn =>
+  private def storeAuth(authentication: Authentication, stage: String): Unit = atomic { implicit txn =>
     logger.info(s"Successfully retrieved Salesforce authentication token for $stage")
     val newAuths = authRef().updated(stage, authentication)
     authRef() = newAuths

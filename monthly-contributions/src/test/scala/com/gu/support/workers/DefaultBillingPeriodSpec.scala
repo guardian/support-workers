@@ -1,8 +1,7 @@
 package com.gu.support.workers
 
 import com.gu.support.workers.Fixtures.contribution
-import com.gu.support.workers.model.monthlyContributions.Contribution
-import com.gu.support.workers.model.{Annual, Monthly}
+import com.gu.support.workers.model.{Annual, Contribution, Monthly}
 import com.gu.zuora.encoding.CustomCodecs.{decodeContribution, decodeCurrency, decodePeriod}
 import com.typesafe.scalalogging.LazyLogging
 import io.circe.parser.decode

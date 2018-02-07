@@ -51,27 +51,22 @@ object Fixtures {
         "amount": $amount,
         "currency": "$currency",
         "billingPeriod": "$billingPeriod",
-	"type" : "Contribution"
+	      "type": "Contribution"
       }
     """
 
-  val digitalBundleJson =
+  val digitalPackJson =
     """
       {
         "currency": "GBP",
         "period" : "Annual",
-        "type" : "DigitalBundle"
+        "type" : "DigitalPack"
       }
     """
 
-  val contributionProductJson =
+  val digitalPackProductJson =
     s"""
-      "product": $contributionJson
-    """
-
-  val digitalBundleProductJson =
-    s"""
-      "product": $digitalBundleJson
+      "product": $digitalPackJson
     """
 
   val payPalJson =
@@ -100,35 +95,35 @@ object Fixtures {
       }
     """
 
-  val createPayPalPaymentMethodJson =
+  def createPayPalPaymentMethodContributionJson(currency: Currency = GBP) =
     s"""{
           $requestIdJson,
           $userJson,
-          "contribution": $contributionJson,
+          "product": ${contribution(currency = currency)},
           "paymentFields": $payPalJson
         }"""
 
-  val createStripePaymentMethodJson =
+  def createStripePaymentMethodContributionJson(billingPeriod: BillingPeriod = Monthly, amount: BigDecimal = 5) =
     s"""{
           $requestIdJson,
           $userJson,
-          "contribution": $contributionJson,
+          "product": ${contribution(amount = amount, billingPeriod = billingPeriod)},
           "paymentFields": $stripeJson
         }"""
 
-  val createPayPalPaymentMethodDigitalBundleJson =
+  val createPayPalPaymentMethodDigitalPackJson =
     s"""{
           $requestIdJson,
           $userJson,
-          $digitalBundleProductJson,
+          $digitalPackProductJson,
           "paymentFields": $payPalJson
         }"""
 
-  val createDirectDebitDigitalBundleJson =
+  val createDirectDebitDigitalPackJson =
     s"""{
           $requestIdJson,
           $userJson,
-          $digitalBundleProductJson,
+          $digitalPackProductJson,
           "paymentFields": $directDebitJson
         }"""
 
@@ -137,7 +132,7 @@ object Fixtures {
           {
             $requestIdJson,
             $userJson,
-            "contribution": ${contribution()},
+            "product": ${contribution()},
             "paymentMethod": $payPalPaymentMethod
           }
         """
@@ -146,7 +141,7 @@ object Fixtures {
     s"""{
        |  $requestIdJson,
        |  $userJson,
-       |  "contribution": $contributionJson,
+       |  "product": ${contribution()},
        |  "paymentMethod": $payPalPaymentMethod,
        |  "salesForceContact": {
        |    "Id": "123",
@@ -169,7 +164,7 @@ object Fixtures {
           {
             $requestIdJson,
             $userJson,
-            "contribution": $contributionJson,
+            "product": ${contribution(billingPeriod = billingPeriod)},
             "paymentMethod": $payPalPaymentMethod,
             "salesForceContact": $salesforceContactJson
             }

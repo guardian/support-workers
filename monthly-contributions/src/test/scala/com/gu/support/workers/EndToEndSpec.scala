@@ -2,10 +2,15 @@ package com.gu.support.workers
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 
-import com.gu.support.workers.Fixtures.{createPayPalPaymentMethodJson, wrapFixture}
+import com.gu.i18n.Currency
+import com.gu.i18n.Currency.{EUR, GBP}
+import com.gu.support.workers.Fixtures.{createPayPalPaymentMethodContributionJson, wrapFixture}
 import com.gu.support.workers.lambdas._
 import com.gu.support.workers.model.JsonWrapper
 import com.gu.test.tags.annotations.IntegrationTest
+import com.gu.zuora.encoding.CustomCodecs.{jsonWrapperDecoder, jsonWrapperEncoder}
+import io.circe.parser._
+
 import scala.io.Source
 
 @IntegrationTest
@@ -15,8 +20,8 @@ class EndToEndSpec extends LambdaSpec {
   they should "work with other currencies" in runSignupWithCurrency(EUR)
 
   def runSignupWithCurrency(currency: Currency) {
-    logger.info(createPayPalPaymentMethodJson(currency))
-    val output = wrapFixture(createPayPalPaymentMethodJson())
+    logger.info(createPayPalPaymentMethodContributionJson(currency))
+    val output = wrapFixture(createPayPalPaymentMethodContributionJson())
       .chain(new CreatePaymentMethod())
       .chain(new CreateSalesforceContact())
       .chain(new CreateZuoraSubscription())

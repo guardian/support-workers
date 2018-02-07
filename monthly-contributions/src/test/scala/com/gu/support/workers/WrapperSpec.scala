@@ -2,8 +2,9 @@ package com.gu.support.workers
 
 import com.gu.support.workers.Fixtures.{contribution, wrapFixture}
 import com.gu.support.workers.encoding.Encoding
-import com.gu.support.workers.model.monthlyContributions.Contribution
+import com.gu.support.workers.model.Contribution
 import com.gu.zuora.encoding.CustomCodecs.codecContribution
+import com.typesafe.scalalogging.LazyLogging
 import org.scalatest.{FlatSpec, Matchers}
 
 class WrapperSpec extends FlatSpec with Matchers with LazyLogging {

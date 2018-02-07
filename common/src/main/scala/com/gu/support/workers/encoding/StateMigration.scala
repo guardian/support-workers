@@ -12,10 +12,11 @@ object StateMigration {
     val json = parser.parse(oldValue.toString).right.get
     val contribution = json \\ "contribution"
     if (contribution.nonEmpty)
-      convertToProduct(contribution.head)
+      //convertToProduct(contribution.head)
+      oldValue //TODO: migration
     else
       oldValue
   }
 
-  private def convertToProduct(contributionJson: Json) = Contrib
+  private def convertToProduct(contributionJson: Json) = ???
 }

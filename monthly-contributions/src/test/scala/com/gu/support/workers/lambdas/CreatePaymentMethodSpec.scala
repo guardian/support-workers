@@ -34,7 +34,7 @@ class CreatePaymentMethodSpec extends AsyncLambdaSpec {
 
     val outStream = new ByteArrayOutputStream()
 
-    createPaymentMethod.handleRequest(wrapFixture(createPayPalPaymentMethodJson), outStream, context)
+    createPaymentMethod.handleRequest(wrapFixture(createPayPalPaymentMethodContributionJson()), outStream, context)
 
     //Check the output
     val createSalesforceContactState = Encoding.in[CreateSalesforceContactState](outStream.toInputStream)
@@ -54,7 +54,7 @@ class CreatePaymentMethodSpec extends AsyncLambdaSpec {
 
     val outStream = new ByteArrayOutputStream()
 
-    createPaymentMethod.handleRequest(wrapFixture(createStripePaymentMethodJson), outStream, context)
+    createPaymentMethod.handleRequest(wrapFixture(createStripePaymentMethodContributionJson()), outStream, context)
 
     //Check the output
     val createSalesforceContactState = Encoding.in[CreateSalesforceContactState](outStream.toInputStream)

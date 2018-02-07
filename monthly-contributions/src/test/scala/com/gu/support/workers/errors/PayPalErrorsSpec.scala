@@ -6,7 +6,7 @@ import com.gu.config.Configuration
 import com.gu.okhttp.RequestRunners
 import com.gu.paypal.PayPalService
 import com.gu.support.config.PayPalConfig
-import com.gu.support.workers.Fixtures.{createPayPalPaymentMethodDigitalBundleJson, wrapFixture}
+import com.gu.support.workers.Fixtures.{createPayPalPaymentMethodDigitalPackJson, wrapFixture}
 import com.gu.support.workers.LambdaSpec
 import com.gu.support.workers.exceptions.RetryUnlimited
 import com.gu.support.workers.lambdas.CreatePaymentMethod
@@ -21,7 +21,7 @@ class PayPalErrorsSpec extends LambdaSpec with MockWebServerCreator with MockSer
     val outStream = new ByteArrayOutputStream()
 
     a[RetryUnlimited] should be thrownBy {
-      createPaymentMethod.handleRequest(wrapFixture(createPayPalPaymentMethodDigitalBundleJson), outStream, context)
+      createPaymentMethod.handleRequest(wrapFixture(createPayPalPaymentMethodDigitalPackJson), outStream, context)
     }
   }
 
@@ -35,7 +35,7 @@ class PayPalErrorsSpec extends LambdaSpec with MockWebServerCreator with MockSer
     val outStream = new ByteArrayOutputStream()
 
     a[RetryUnlimited] should be thrownBy {
-      createPaymentMethod.handleRequest(wrapFixture(createPayPalPaymentMethodDigitalBundleJson), outStream, context)
+      createPaymentMethod.handleRequest(wrapFixture(createPayPalPaymentMethodDigitalPackJson), outStream, context)
     }
 
     // Shut down the server. Instances cannot be reused.

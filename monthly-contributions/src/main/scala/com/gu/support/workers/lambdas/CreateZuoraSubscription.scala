@@ -5,8 +5,8 @@ import com.gu.config.Configuration.zuoraConfigProvider
 import com.gu.monitoring.products.RecurringContributionsMetrics
 import com.gu.services.{ServiceProvider, Services}
 import com.gu.support.workers.encoding.StateCodecs._
-import com.gu.support.workers.model.Contribution
 import com.gu.support.workers.model.states.{CreateZuoraSubscriptionState, SendThankYouEmailState}
+import com.gu.support.workers.model.{Contribution, RequestInfo}
 import com.gu.zuora.model._
 import com.gu.zuora.model.response.{Subscription => SubscriptionResponse}
 import com.typesafe.scalalogging.LazyLogging
@@ -27,7 +27,7 @@ class CreateZuoraSubscription(servicesProvider: ServiceProvider = ServiceProvide
     context: Context,
     services: Services
   ): FutureHandlerResult =
-    services.zuoraService.getRecurringSubscription(state.user.id, state.contribution.billingPeriod).flatMap {
+    services.zuoraService.getRecurringSubscription(state.user.id, state.product.billingPeriod).flatMap {
       case Some(sub) => skipSubscribe(state, requestInfo, sub)
       case None => subscribe(state, requestInfo, services)
     }
@@ -57,7 +57,7 @@ class CreateZuoraSubscription(servicesProvider: ServiceProvider = ServiceProvide
 
   private def buildSubscribeRequest(state: CreateZuoraSubscriptionState) = {
     //Documentation for this request is here: https://www.zuora.com/developer/api-reference/#operation/Action_POSTsubscribe
-    val config = zuoraConfigProvider.get(state.user.isTestUser).configForBillingPeriod(state.contribution.billingPeriod)
+    val config = zuoraConfigProvider.get(state.user.isTestUser).configForBillingPeriod(state.product.billingPeriod)
 
     //TODO:
     val product = state.product match {
@@ -70,7 +70,7 @@ class CreateZuoraSubscription(servicesProvider: ServiceProvider = ServiceProvide
       state.salesForceContact.AccountId, //Somewhere else we store the Salesforce Account id
       state.salesForceContact.Id,
       state.user.id,
-      PaymentGateway.forPaymentMethod(state.paymentMethod, state.contribution.currency)
+      PaymentGateway.forPaymentMethod(state.paymentMethod, state.product.currency)
     )
 
     val contactDetails = ContactDetails(

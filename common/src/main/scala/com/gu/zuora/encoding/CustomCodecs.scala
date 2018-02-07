@@ -8,10 +8,9 @@ import com.gu.i18n.{Country, CountryGroup, Currency}
 import com.gu.support.workers.encoding.Codec
 import com.gu.support.workers.encoding.Helpers.{capitalizingCodec, deriveCodec}
 import com.gu.support.workers.model._
-import com.gu.support.workers.model.monthlyContributions.Contribution
 import io.circe.generic.semiauto._
 import io.circe.syntax._
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 import org.joda.time.{DateTime, LocalDate}
 
 import scala.util.Try
@@ -19,6 +18,10 @@ import scala.util.Try
 object CustomCodecs extends CustomCodecs with InternationalisationCodecs with ModelsCodecs with HelperCodecs
 
 trait InternationalisationCodecs {
+  implicit val encodeCurrency: Encoder[Currency] = Encoder.encodeString.contramap[Currency](_.iso)
+
+  implicit val decodeCurrency: Decoder[Currency] =
+    Decoder.decodeString.emap { code => Currency.fromString(code).toRight(s"Unrecognised currency code '$code'") }
 
   implicit val encodeCountryAsAlpha2: Encoder[Country] = Encoder.encodeString.contramap[Country](_.alpha2)
   implicit val decodeCountry: Decoder[Country] =
@@ -69,12 +72,12 @@ trait ModelsCodecs {
   implicit val encodePeriod: Encoder[BillingPeriod] = Encoder.encodeString.contramap[BillingPeriod](_.toString)
 
   //Products
-  implicit val codecDigitalBundle: Codec[DigitalBundle] = deriveCodec
+  implicit val codecDigitalPack: Codec[DigitalPack] = deriveCodec
   implicit val codecContribution: Codec[Contribution] = deriveCodec
 
   implicit val encodeProduct: Encoder[ProductType] = new Encoder[ProductType] {
     override final def apply(a: ProductType): Json = a match {
-      case d: DigitalBundle => Encoder[DigitalBundle].apply(d).mapObject(json => json.add("type", Json.fromString(d.toString())))
+      case d: DigitalPack => Encoder[DigitalPack].apply(d).mapObject(json => json.add("type", Json.fromString(d.toString())))
       case c: Contribution => Encoder[Contribution].apply(c).mapObject(json => json.add("type", Json.fromString(c.toString())))
     }
   }
@@ -82,17 +85,16 @@ trait ModelsCodecs {
   implicit val decodeProduct: Decoder[ProductType] = Decoder.instance(c =>
     c.downField("type").as[String].right.get match {
       case "Contribution" => c.as[Contribution]
-      case "DigitalBundle" => c.as[DigitalBundle]
-    }
-  )
+      case "DigitalPack" => c.as[DigitalPack]
+    })
   //end  
-implicit val codecUser: Codec[User] = deriveCodec
+  implicit val codecUser: Codec[User] = deriveCodec
 
   //There is a configuration option in Circe to allow the use of Scala default parameters, but unfortunately
   //it doesn't seem to work in version 0.8.0 so we'll have to use this more verbose approach
   implicit val decodeContribution: Decoder[Contribution] = Decoder
     .forProduct3("amount", "currency", "billingPeriod")(Contribution.apply)
-    .or(Decoder.forProduct2("amount", "currency")((a: BigDecimal, c: Currency) => Contribution(a, c)))
+    .or(Decoder.forProduct2("amount", "currency")((a: BigDecimal, c: Currency) => Contribution(c, Monthly, a)))
   implicit val encodeContribution: Encoder[Contribution] = deriveEncoder
 
   implicit val executionErrorCodec: Codec[ExecutionError] = deriveCodec
@@ -115,10 +117,8 @@ trait HelperCodecs {
   implicit val decodeLocalTime: Decoder[LocalDate] = Decoder.decodeString.map(LocalDate.parse)
   implicit val encodeDateTime: Encoder[DateTime] = Encoder.encodeLong.contramap(_.getMillis)
   implicit val decodeDateTime: Decoder[DateTime] = Decoder.decodeLong.map(new DateTime(_))
-  implicit val uuidDecoder =
-    Decoder.decodeString.emap { code => Try { UUID.fromString(code) }.toOption.toRight(s"Invalid UUID '$code'") }
-
-  implicit val uuidEnecoder: Encoder[UUID] = Encoder.encodeString.contramap(_.toString)
+  implicit val uuidDecoder: Decoder[UUID] = Decoder.decodeString.emap(code => Try(UUID.fromString(code)).toOption.toRight(s"Invalid UUID '$code'"))
+  implicit val uuidEncoder: Encoder[UUID] = Encoder.encodeString.contramap(_.toString)
 }
 
 trait CustomCodecs {
