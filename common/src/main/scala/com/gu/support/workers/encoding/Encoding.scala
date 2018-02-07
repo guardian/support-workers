@@ -5,7 +5,6 @@ import java.util.Base64
 
 import cats.syntax.either._
 import com.gu.support.workers.encoding.Encryption._
-import com.gu.support.workers.encoding.StateMigration.migrate
 import com.gu.support.workers.encoding.Wrapper._
 import com.gu.support.workers.model.{ExecutionError, RequestInfo}
 import com.gu.zuora.encoding.CustomCodecs.{jsonWrapperDecoder, jsonWrapperEncoder}
@@ -23,8 +22,7 @@ object Encoding {
       wrapper <- unWrap(is)
       state <- Try(Base64.getDecoder.decode(wrapper.state))
       decrypted <- Try(decrypt(state, wrapper.requestInfo.encrypted))
-      migrated <- Try(migrate(decrypted))
-      result <- decode[T](migrated).toTry
+      result <- decode[T](decrypted).toTry
     } yield (result, wrapper.error, wrapper.requestInfo)
 
   def out[T](value: T, requestInfo: RequestInfo, os: OutputStream)(implicit encoder: Encoder[T]): Try[Unit] = {
