@@ -68,7 +68,9 @@ class StepFunctionsService extends LazyLogging {
 
   private def decodeInput(execution: DescribeExecutionResult): Option[User] =
     Encoding.in[CreatePaymentMethodState](execution.getInput.asInputStream) //TODO: handle old version of state schema
-      .map(_._1.user)
+      .map {
+      case (state, _, _) => state.user
+    }
       .toOption
 
 }

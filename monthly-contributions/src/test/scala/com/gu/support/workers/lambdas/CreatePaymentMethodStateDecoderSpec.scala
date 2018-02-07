@@ -16,7 +16,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class CreatePaymentMethodStateDecoderSpec extends FlatSpec with Matchers with MockitoSugar with LazyLogging {
 
   "Monthly Contribution Product" should "be decodable" in {
-    val product: ProductType = Contribution(GBP, Monthly, 5)
+    val product: ProductType = Contribution(5, GBP, Monthly)
     assertCodecIsValid(product.asJson)
     /*
     {
@@ -41,13 +41,12 @@ class CreatePaymentMethodStateDecoderSpec extends FlatSpec with Matchers with Mo
   }
 
   private def assertCodecIsValid(json: Json) = {
-    logger.info(json.spaces2)
     val product2 = decode[ProductType](json.noSpaces)
     product2.isRight should be(true) //decoding succeeded
   }
 
   "CreatePaymentMethodStateDecoder" should "be able to decode a contribution with PayPal payment fields" in {
-    val state = decode[CreatePaymentMethodState](createPayPalPaymentMethodDigitalPackJson)
+    val state = decode[CreatePaymentMethodState](createPayPalPaymentMethodContributionJson())
     val result = state.right.get
     result.product match {
       case contribution: Contribution => contribution.amount should be(5)
@@ -88,15 +87,21 @@ class CreatePaymentMethodStateDecoderSpec extends FlatSpec with Matchers with Mo
 
   it should "be able to decode a DigitalPack with Direct Debit payment fields" in {
     val state = decode[CreatePaymentMethodState](createDirectDebitDigitalPackJson)
-    val result = state.right.get
-    result.product match {
-      case digitalPack: DigitalPack => digitalPack.billingPeriod should be(Annual)
-      case _ => fail()
-    }
-    result.paymentFields match {
-      case dd: DirectDebitPaymentFields => dd.accountHolderName should be(mickeyMouse)
-      case _ => fail()
-    }
+    state.fold(e => logger.error(s"$e"), result => {
+      result.product match {
+        case digitalPack: DigitalPack => digitalPack.billingPeriod should be(Annual)
+        case _ => fail()
+      }
+      result.paymentFields match {
+        case dd: DirectDebitPaymentFields => dd.accountHolderName should be(mickeyMouse)
+        case _ => fail()
+      }
+    })
+  }
+
+  it should "be able to decode the old json schema" in {
+    val state = decode[CreatePaymentMethodState](oldSchemaContributionJson)
+    state.isRight should be (true)
   }
 
 }

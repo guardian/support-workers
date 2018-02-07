@@ -75,27 +75,19 @@ trait ModelsCodecs {
   implicit val codecDigitalPack: Codec[DigitalPack] = deriveCodec
   implicit val codecContribution: Codec[Contribution] = deriveCodec
 
-  implicit val encodeProduct: Encoder[ProductType] = new Encoder[ProductType] {
-    override final def apply(a: ProductType): Json = a match {
-      case d: DigitalPack => Encoder[DigitalPack].apply(d).mapObject(json => json.add("type", Json.fromString(d.toString())))
-      case c: Contribution => Encoder[Contribution].apply(c).mapObject(json => json.add("type", Json.fromString(c.toString())))
-    }
+  implicit val encodeProduct: Encoder[ProductType] = Encoder.instance {
+    case d: DigitalPack => d.asJson
+    case c: Contribution => c.asJson
   }
 
-  implicit val decodeProduct: Decoder[ProductType] = Decoder.instance(c =>
-    c.downField("type").as[String].right.get match {
-      case "Contribution" => c.as[Contribution]
-      case "DigitalPack" => c.as[DigitalPack]
-    })
-  //end  
-  implicit val codecUser: Codec[User] = deriveCodec
+  implicit val decodeProduct: Decoder[ProductType] =
+    List[Decoder[ProductType]](
+      Decoder[Contribution].widen,
+      Decoder[DigitalPack].widen
+    ).reduceLeft(_ or _)
+  //end
 
-  //There is a configuration option in Circe to allow the use of Scala default parameters, but unfortunately
-  //it doesn't seem to work in version 0.8.0 so we'll have to use this more verbose approach
-  implicit val decodeContribution: Decoder[Contribution] = Decoder
-    .forProduct3("amount", "currency", "billingPeriod")(Contribution.apply)
-    .or(Decoder.forProduct2("amount", "currency")((a: BigDecimal, c: Currency) => Contribution(c, Monthly, a)))
-  implicit val encodeContribution: Encoder[Contribution] = deriveEncoder
+  implicit val codecUser: Codec[User] = deriveCodec
 
   implicit val executionErrorCodec: Codec[ExecutionError] = deriveCodec
 

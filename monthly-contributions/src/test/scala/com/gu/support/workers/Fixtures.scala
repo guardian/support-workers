@@ -50,8 +50,7 @@ object Fixtures {
       {
         "amount": $amount,
         "currency": "$currency",
-        "billingPeriod": "$billingPeriod",
-	      "type": "Contribution"
+        "billingPeriod": "$billingPeriod"
       }
     """
 
@@ -59,8 +58,7 @@ object Fixtures {
     """
       {
         "currency": "GBP",
-        "period" : "Annual",
-        "type" : "DigitalPack"
+        "billingPeriod" : "Annual"
       }
     """
 
@@ -80,9 +78,10 @@ object Fixtures {
   val directDebitJson =
     s"""
       {
-        "sortcode": "111111",
-        "accountNumber": "99999999",
-        "accountName": "$mickeyMouse"
+        "accountHolderName": "$mickeyMouse",
+        "sortCode": "111111",
+        "accountNumber": "99999999"
+
       }
     """
 
@@ -108,6 +107,14 @@ object Fixtures {
           $requestIdJson,
           $userJson,
           "product": ${contribution(amount = amount, billingPeriod = billingPeriod)},
+          "paymentFields": $stripeJson
+        }"""
+
+  val oldSchemaContributionJson =
+    s"""{
+          $requestIdJson,
+          $userJson,
+          "contribution": ${contribution()},
           "paymentFields": $stripeJson
         }"""
 
