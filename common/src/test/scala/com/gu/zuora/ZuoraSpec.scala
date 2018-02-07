@@ -1,9 +1,12 @@
 package com.gu.zuora
 
 import com.gu.config.Configuration.zuoraConfigProvider
+import com.gu.i18n.Currency.{AUD, EUR, GBP, USD}
 import com.gu.okhttp.RequestRunners
+import com.gu.support.workers.model.Monthly
 import com.gu.test.tags.annotations.IntegrationTest
 import com.gu.zuora.Fixtures._
+import com.gu.zuora.model.SubscribeRequest
 import com.gu.zuora.model.response.ZuoraErrorResponse
 import com.typesafe.scalalogging.LazyLogging
 import org.scalatest.{AsyncFlatSpec, Matchers}
@@ -24,7 +27,7 @@ class ZuoraSpec extends AsyncFlatSpec with Matchers with LazyLogging {
   }
 
   it should "retrieve account ids from an Identity id" in {
-    uatService.getAccountIds("30000701").map {
+    uatService.getAccountIds("30001758").map {
       response =>
         response.nonEmpty should be(true)
     }
@@ -35,32 +38,49 @@ class ZuoraSpec extends AsyncFlatSpec with Matchers with LazyLogging {
   }
 
   it should "retrieve subscriptions from an account id" in {
-    uatService.getSubscriptions("A00069602").map {
+    uatService.getSubscriptions("A00071408").map {
       response =>
         response.nonEmpty should be(true)
-        response.head.ratePlans.head.productRatePlanId should be(zuoraConfigProvider.get(true).productRatePlanId)
+        response.head.ratePlans.head.productRatePlanId should be(zuoraConfigProvider.get(true).monthlyContribution.productRatePlanId)
     }
   }
 
   it should "be able to find a monthly recurring subscription" in {
-    uatService.getMonthlyRecurringSubscription("30000701").map {
+    uatService.getRecurringSubscription("30001758", Monthly).map {
       response =>
         response.isDefined should be(true)
         response.get.ratePlans.head.productName should be("Contributor")
     }
   }
 
-  "Subscribe request" should "succeed" in {
-    val zuoraService = new ZuoraService(zuoraConfigProvider.get(), RequestRunners.configurableFutureRunner(30.seconds))
-    zuoraService.subscribe(subscriptionRequest).map {
+  it should "ignore active subscriptions which do not have a recurring contributor plan" in {
+    uatService.getRecurringSubscription("18390845", Monthly).map {
       response =>
-        response.head.success should be(true)
+        response.isDefined should be(false)
     }
   }
 
-  it should "work for $USD contributions" in {
+  it should "ignore cancelled recurring contributions" in {
+    uatService.getRecurringSubscription("30001780", Monthly).map {
+      response =>
+        response.isDefined should be(false)
+    }
+  }
+
+  "Subscribe request" should "succeed" in doRequest(creditCardSubscriptionRequest(GBP))
+
+  it should "work for $USD contributions" in doRequest(creditCardSubscriptionRequest(USD))
+
+  it should "work for €Euro contributions" in doRequest(creditCardSubscriptionRequest(EUR))
+
+  it should "work for AUD contributions" in doRequest(creditCardSubscriptionRequest(AUD))
+
+  it should "work with Direct Debit" in doRequest(directDebitSubscriptionRequest)
+
+  def doRequest(subscribeRequest: SubscribeRequest) = {
+    //Accounts will be created in Sandbox
     val zuoraService = new ZuoraService(zuoraConfigProvider.get(), RequestRunners.configurableFutureRunner(30.seconds))
-    zuoraService.subscribe(usSubscriptionRequest).map {
+    zuoraService.subscribe(subscribeRequest).map {
       response =>
         response.head.success should be(true)
     }.recover {

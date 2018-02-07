@@ -1,14 +1,15 @@
 package com.gu.zuora
 
 import com.gu.config.Configuration
-import com.gu.i18n.Country
-import com.gu.i18n.Currency.{GBP, USD}
-import com.gu.support.workers.model.{CreditCardReferenceTransaction, PayPalReferenceTransaction}
+import com.gu.i18n.Currency.GBP
+import com.gu.i18n.{Country, Currency}
+import com.gu.support.workers.model.{CreditCardReferenceTransaction, DirectDebitPaymentMethod, PayPalReferenceTransaction}
 import com.gu.zuora.model._
 import org.joda.time.LocalDate
 
+//noinspection TypeAnnotation
 object Fixtures {
-  val accountNumber = "A00069567"
+  val accountNumber = "A00071408"
 
   val getAccountResponse =
     s"""
@@ -102,18 +103,20 @@ object Fixtures {
 
   val date = new LocalDate(2017, 5, 4)
 
-  val account = Account(salesforceAccountId, GBP, salesforceAccountId, salesforceId, identityId, StripeGateway)
+  def account(currency: Currency = GBP, paymentGateway: PaymentGateway = StripeGatewayDefault) = Account(salesforceAccountId, currency, salesforceAccountId, salesforceId, identityId, paymentGateway)
+
   val contactDetails = ContactDetails("Test-FirstName", "Test-LastName", "test@gu.com", Country.UK)
-  val creditCardPaymentMethod = CreditCardReferenceTransaction(tokenId, secondTokenId, cardNumber, Some(Country.UK), 12, 22, "Visa")
+  val creditCardPaymentMethod = CreditCardReferenceTransaction(tokenId, secondTokenId, cardNumber, Some(Country.UK), 12, 22, "AmericanExpress")
   val payPalPaymentMethod = PayPalReferenceTransaction(payPalBaid, "test@paypal.com")
+  val directDebitPaymentMethod = DirectDebitPaymentMethod("Barry", "Humphreys", "Barry Humphreys", "200000", "55779911")
 
   val config = Configuration.zuoraConfigProvider.get()
-  val subscriptionData = SubscriptionData(
+  val monthlySubscriptionData = SubscriptionData(
     List(
       RatePlanData(
-        RatePlan(config.productRatePlanId), //Contribution product
+        RatePlan(config.monthlyContribution.productRatePlanId), //Contribution product
         List(RatePlanChargeData(
-          RatePlanCharge(config.productRatePlanChargeId, Some(25: BigDecimal))
+          RatePlanCharge(config.monthlyContribution.productRatePlanChargeId, Some(25: BigDecimal))
         )),
         Nil
       )
@@ -121,27 +124,27 @@ object Fixtures {
     Subscription(date, date, date)
   )
 
-  val subscriptionRequest = SubscribeRequest(List(SubscribeItem(account, contactDetails, creditCardPaymentMethod, subscriptionData, SubscribeOptions())))
+  def creditCardSubscriptionRequest(currency: Currency = GBP) = SubscribeRequest(List(SubscribeItem(account(currency), contactDetails, creditCardPaymentMethod, monthlySubscriptionData, SubscribeOptions())))
 
-  val usAccount = Account(salesforceAccountId, USD, salesforceAccountId, salesforceId, identityId, StripeGateway)
+  def directDebitSubscriptionRequest = SubscribeRequest(List(SubscribeItem(account(paymentGateway = DirectDebitGateway), contactDetails, directDebitPaymentMethod, monthlySubscriptionData, SubscribeOptions())))
 
-  val usSubscriptionRequest = SubscribeRequest(List(SubscribeItem(usAccount, contactDetails, creditCardPaymentMethod, subscriptionData, SubscribeOptions())))
-
-  val invalidSubsData = SubscriptionData(
+  val invalidMonthlySubsData = SubscriptionData(
     List(
       RatePlanData(
-        RatePlan(config.productRatePlanId),
+        RatePlan(config.monthlyContribution.productRatePlanId),
         List(RatePlanChargeData(
-          RatePlanCharge(config.productRatePlanChargeId, Some(5: BigDecimal))
+          RatePlanCharge(config.monthlyContribution.productRatePlanChargeId, Some(5: BigDecimal))
         )),
         Nil
       )
     ),
     Subscription(date, date, date, termType = "Invalid term type")
   )
-  val invalidSubscriptionRequest = SubscribeRequest(List(SubscribeItem(account, contactDetails, creditCardPaymentMethod, invalidSubsData, SubscribeOptions())))
+  val invalidSubscriptionRequest = SubscribeRequest(List(
+    SubscribeItem(account(), contactDetails, creditCardPaymentMethod, invalidMonthlySubsData, SubscribeOptions())
+  ))
 
-  val incorrectPaymentMethod = SubscribeRequest(List(SubscribeItem(account, contactDetails, payPalPaymentMethod, invalidSubsData, SubscribeOptions())))
+  val incorrectPaymentMethod = SubscribeRequest(List(SubscribeItem(account(), contactDetails, payPalPaymentMethod, invalidMonthlySubsData, SubscribeOptions())))
 
   val invoiceResult =
     """
@@ -180,7 +183,34 @@ object Fixtures {
         $subscribeResponseAccount
       ]
     """
-
+  val subscribeResponseAnnual =
+    """
+     [
+        {
+          "AccountNumber": "A00016540",
+          "SubscriptionNumber": "A-S00043802",
+          "GatewayResponse": "Approved",
+          "PaymentId": "2c92c0f95e1d5ca3015e38e585f339dc",
+          "InvoiceResult": {
+            "Invoice": [
+              {
+                "InvoiceNumber": "INV00052447",
+                "Id": "2c92c0f95e1d5ca3015e38e585b539d1"
+              }
+            ]
+          },
+          "TotalTcv": 150,
+          "SubscriptionId": "2c92c0f95e1d5ca3015e38e5854739c3",
+          "Success": true,
+          "TotalMrr": 12.5,
+          "PaymentTransactionNumber": "18X93788F8464761C",
+          "AccountId": "2c92c0f95e1d5ca3015e38e583c739bd",
+          "GatewayResponseCode": "Approved",
+          "InvoiceNumber": "INV00052447",
+          "InvoiceId": "2c92c0f95e1d5ca3015e38e585b539d1"
+        }
+      ]
+   """
   val error =
     """
       {
@@ -204,5 +234,12 @@ object Fixtures {
         ]
      """
 
+  val directDebitPaymentFieldsJson =
+    s"""
+       {
+        "accountHolderName": "Mickey Mouse",
+        "sortCode": "204532",
+        "accountNumber": "37462947"
+       }
+     """
 }
-

@@ -8,7 +8,7 @@ such as Salesforce, Zuora, Paypal and Stripe and to provide retry functionality 
 
 ## Project structure
 The project is divided up into a common module, which contains code used by all of the step functions, and separate
-modules for each of the step functions.
+modules for each of the step functions. It also depends on the [support-models](https://github.com/guardian/support-models) library which defines all the state to be shared between this project and [support-frontend](https://github.com/guardian/support-frontend)
 
 ## Setup
 
@@ -48,10 +48,21 @@ There are a number of integration tests in the project which talk to real servic
 
 These tests are tagged with either an @IntegrationTest annotation at the spec level or an IntegrationTest tag at the individual test level which allows us to run them selectively as follows:
 
-`sbt test` - runs all tests including integration tests.
+`sbt test` - runs unit tests only and excludes integration tests.
 
-`sbt testOnly -- -l com.gu.test.tags.annotations.IntegrationTest` - runs non-integration tests only.
+`sbt it:test` - runs all tests including integration tests.
 
+## Deployment 
+We use [Riff-Raff](https://github.com/guardian/riff-raff) to deploy this project to production each time a new change is merged to master.
+
+The following steps happen as part of a deployment:
+
+1. (If necessary) Cloudformation updates are applied in AWS. For example, if your change removes a task from the Step Function, or deletes one of the Lambdas, Riff-Raff triggers a change to the underlying AWS resources.
+2. The .jar used by each of the Lambdas defined in this project is updated, meaning that all future Lambda invocations will run code which contains the new changes.
+
+It's important to be aware that some Step Function executions may still be in progress when new changes are deployed. This means that all changes merged to master should be backwards compatible for old executions (i.e. executions which depend on the resources from the old Cloudformation template, and the old versions of the Lambda functions). 
+
+Examples of changes which could break existing executions include editing the JSON structure which is passed between two of the Lambdas, or deleting a Lambda from the Cloudformation template. In such cases, it's often necessary to split changes into two PRs. The initial PR is used to transition all future executions to use only the new code or resources, and a second PR is used to tidy up, after ensuring that all running executions are now using the new JSON structure or Step Function definition.
 
 ## Json
 This project uses [Circe](https://github.com/circe/circe) to serialise and deserialise json.
@@ -80,10 +91,33 @@ This behaviour is illustrated through a number of tests in [CirceEncodingBehavio
 ## Encryption
 To protect user data as it is passed through the various stages of the step functions we encrypt it using the [AWS KMS API](https://docs.aws.amazon.com/kms/latest/developerguide/programming-top.html).
 
-This encryption can be switched off for debugging purposes by setting the aws.useEncryption config setting to false.
+This encryption is controlled on a per request basis by a flag 'encrypted' passed in with the Json payload.
+
+If you want to look at the input to a particular state machine execution you can decrypt it using the script in scripts/decode.sh as follows:
+
+* Copy the json state from the AWS console
+
+* Minify it (so that it can be passed in to the script on the command line)
+
+* Call the script eg.
+    `./decode.sh '{"state":"AQICAHjJHubNEB1WH+W22uvaeQCP8EVHJ9ho4gS436mo+W3QTgE38M5ynj5ZU+GbHVt5ZBnGAAACIjCCAh4GCSqGSIb3DQEHBqCCAg8wggILAgEAMIICBAYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAzZFWiO1E0uyop/6RUCARCAggHVDvHnH1QkR8VVnuPwRaNRAQoMkBE0yf9I5Kb0ugxirrfZqklswIhPWOGBktG9XWZ31mJDHJ6mb2H5PTJxmAA/64jqYvv0W5Q7yMhwHXTroTraa8+oawgaMipKDtMzfjVDYkHcUsfSHePVgXTCmdEkjthnTV+g10Y0TK3RximRLeBJ/Us9WW07gyg4ibBKdjDEAHYyLfx59nRNDL3f5NN0ZT1aYhhoxCle4d4QxsijQ9a2soZoRXNZ11CgCTrSB9bd08gBjfY0Y0kuA7Emv6oskBImGcLp6CXf3uZHU/pdT7L6PgcBw41hKk9aOXCpiPEPUyni8ePAv+qN74IjkrsXqwMVAzqtgewx1HwgShcYFnhLQ97b9KaoClAiSiYxF0CB2k/AgM6zHo2riaCnRje2bwjE065e8NJzz9wPfhKDLj95B06bpm/1eCOsF6bKGyqrfhZCk23880O58OQAVzzaTRTE3PIktbaICLdIVfLGSN4kF2GxV3Qako/E5W7BCKKt/GsV+pbraLh3WfuokFy4ABPgWqDBRfUKeYJMqKsKDiUzyp6xydMj9yf9ooJKmlqjiRT3QLvScsKCetvYsKTO9/bpgQkKp7iS1QIPTqlxu05MU5z9Gw==","error":null,"encrypted":true}'`
+
+    __(note the single quotes around the json, these are necessary or quotes get stripped out)__
+
+    The output should be something like:
+    `{"requestId":"9759a67f-61a7-10c6-0000-00000000008c","user":{"id":"30001273","primaryEmailAddress":"dslkjfsdlk@gu.com","firstName":"tstssdd","lastName":"ljsdlfkjsdflkj","country":"GB","state":null,"allowMembershipMail":false,"allowThirdPartyMail":false,"allowGURelatedMail":true,"isTestUser":false},"contribution":{"amount":5,"currency":"GBP","billingPeriod":"Monthly"},"paymentFields":{"userId":"30001273","stripeToken":"tok_BWg0DWRgTkyCY7"}}`
+
+By default the script will use the AWS encryption key ARN from the local support-workers.private.conf, this is fine
+for decrypting state from the CODE environment but if you want to decrypt state from PROD, you can pass the
+production AWS encryption key ARN as a second parameter to the script.
 
 ## Emails
 Docs on how emails are sent from this app are [here](/docs/triggered-send-in-exact-target.md)
+
+## Data subject access requests
+The state machine executions of this app have been identified as a data store which we would need to include in a response to any subject
+access requests we may receive ([this is a good explanation of what these are](https://ico.org.uk/media/for-organisations/documents/2014223/subject-access-code-of-practice.pdf)).
+Should it become necessary to search them, this can be done using the `StepFunctionsService` class, see `StepFunctionsSpec` for how to do this.
 
 ## TODO
 

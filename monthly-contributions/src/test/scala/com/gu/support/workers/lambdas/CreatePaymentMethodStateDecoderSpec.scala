@@ -3,8 +3,8 @@ package com.gu.support.workers.lambdas
 import com.gu.i18n.Currency.GBP
 import com.gu.support.workers.Fixtures.{validBaid, _}
 import com.gu.support.workers.encoding.StateCodecs._
-import com.gu.support.workers.model._
-import com.gu.support.workers.model.states.CreatePaymentMethodState
+import com.gu.support.workers.model.monthlyContributions.state.CreatePaymentMethodState
+import com.gu.support.workers.model.{PayPalPaymentFields, StripePaymentFields}
 import com.gu.zuora.encoding.CustomCodecs._
 import com.typesafe.scalalogging.LazyLogging
 import io.circe.Json

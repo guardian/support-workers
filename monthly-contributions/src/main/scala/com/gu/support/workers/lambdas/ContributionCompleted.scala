@@ -10,7 +10,7 @@ class ContributionCompleted
     extends Handler[SendThankYouEmailState, CompletedState]
     with LazyLogging {
 
-  override protected def handler(state: SendThankYouEmailState, error: Option[ExecutionError], context: Context): CompletedState = {
+  override protected def handler(state: SendThankYouEmailState, error: Option[ExecutionError], requestInfo: RequestInfo, context: Context) = {
     val fields = List(
       "product_description" -> state.product.describe,
       "test_user" -> state.user.isTestUser.toString,
@@ -19,12 +19,12 @@ class ContributionCompleted
 
     logger.info(fields.map({ case (k, v) => s"$k: $v" }).mkString("SUCCESS ", " ", ""))
 
-    CompletedState(
+    HandlerResult(CompletedState(
       requestId = state.requestId,
       user = state.user,
       product = state.product,
       status = Status.Success,
       message = None
-    )
+    ), requestInfo)
   }
 }

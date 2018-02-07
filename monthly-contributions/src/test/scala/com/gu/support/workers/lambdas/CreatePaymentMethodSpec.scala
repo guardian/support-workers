@@ -3,12 +3,16 @@ package com.gu.support.workers.lambdas
 import java.io.ByteArrayOutputStream
 
 import com.amazonaws.services.lambda.runtime.Context
+import com.gu.config.Configuration
+import com.gu.i18n.Currency
+import com.gu.i18n.Currency.GBP
+import com.gu.okhttp.RequestRunners.configurableFutureRunner
 import com.gu.services.{ServiceProvider, Services}
-import com.gu.stripe.Stripe.StripeList
+import com.gu.stripe.Stripe.{StripeError, StripeList}
 import com.gu.stripe.{Stripe, StripeService}
-import com.gu.support.workers.Conversions.{FromOutputStream, StringInputStreamConversions}
+import com.gu.support.workers.AsyncLambdaSpec
 import com.gu.support.workers.Fixtures.{validBaid, _}
-import com.gu.support.workers.LambdaSpec
+import com.gu.support.workers.encoding.Conversions.{FromOutputStream, StringInputStreamConversions}
 import com.gu.support.workers.encoding.Encoding
 import com.gu.support.workers.encoding.StateCodecs._
 import com.gu.support.workers.exceptions.RetryNone
@@ -21,15 +25,16 @@ import org.mockito.Mockito._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
-class CreatePaymentMethodSpec extends LambdaSpec {
+class CreatePaymentMethodSpec extends AsyncLambdaSpec {
 
   "CreatePaymentMethod" should "retrieve a valid PayPalReferenceTransaction when given a valid baid" taggedAs IntegrationTest in {
     val createPaymentMethod = new CreatePaymentMethod()
 
     val outStream = new ByteArrayOutputStream()
 
-    createPaymentMethod.handleRequest(wrapFixture(createPayPalPaymentMethodDigitalBundleJson), outStream, context)
+    createPaymentMethod.handleRequest(wrapFixture(createPayPalPaymentMethodJson), outStream, context)
 
     //Check the output
     val createSalesforceContactState = Encoding.in[CreateSalesforceContactState](outStream.toInputStream)
@@ -49,7 +54,7 @@ class CreatePaymentMethodSpec extends LambdaSpec {
 
     val outStream = new ByteArrayOutputStream()
 
-    createPaymentMethod.handleRequest(wrapFixture(createStripePaymentMethodContributionJson), outStream, context)
+    createPaymentMethod.handleRequest(wrapFixture(createStripePaymentMethodJson), outStream, context)
 
     //Check the output
     val createSalesforceContactState = Encoding.in[CreateSalesforceContactState](outStream.toInputStream)
@@ -68,22 +73,30 @@ class CreatePaymentMethodSpec extends LambdaSpec {
 
       val outStream = new ByteArrayOutputStream()
 
-      val inStream = "Test user".asInputStream()
+      val inStream = "Test user".asInputStream
 
       createPaymentMethod.handleRequest(inStream, outStream, mock[Context])
 
-      val p = outStream.toClass[PaymentMethod]()
+      val p = outStream.toClass[PaymentMethod](encrypted = false)
     }
   }
 
-  lazy private val mockServices = {
+  "StripeService" should "throw a card_declined StripeError" taggedAs IntegrationTest in {
+    val service = new StripeService(Configuration.stripeConfigProvider.get(true), configurableFutureRunner(40.seconds))
+    val ex = recoverToExceptionIf[StripeError] {
+      service.createCustomer("Test", "tok_chargeDeclined", GBP)
+    }
+    ex.map(_.code should be(Some("card_declined")))
+  }
+
+  private lazy val mockServices = {
     //Mock the stripe service as we cannot actually create a customer
     val serviceProvider = mock[ServiceProvider]
     val services = mock[Services]
     val stripe = mock[StripeService]
-    val card = Stripe.Card("1234", "visa", "1234", 1, 2099, "GB")
+    val card = Stripe.Source("1234", "visa", "1234", 1, 2099, "GB")
     val customer = Stripe.Customer("12345", StripeList(1, Seq(card)))
-    when(stripe.createCustomer(any[String], any[String])).thenReturn(Future(customer))
+    when(stripe.createCustomer(any[String], any[String], any[Currency])).thenReturn(Future(customer))
     when(services.stripeService).thenReturn(stripe)
     when(serviceProvider.forUser(any[Boolean])).thenReturn(services)
     serviceProvider

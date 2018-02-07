@@ -2,7 +2,6 @@ package com.gu.config
 
 import com.gu.config.loaders.PrivateConfigLoader
 import com.gu.emailservices.EmailServicesConfig
-import com.gu.membersDataAPI.MembersDataServiceConfigProvider
 import com.gu.salesforce.SalesforceConfigProvider
 import com.gu.support.config._
 import com.gu.zuora.ZuoraConfigProvider
@@ -26,11 +25,10 @@ object Configuration extends LazyLogging {
     .forEnvironment(loadFromS3)
     .load(stage, ConfigFactory.load())
 
-  val awsConfig = AwsConfig.fromConfig(config)
+  val encryptionKeyId = config.getString("aws.encryptionKeyId")
   val stripeConfigProvider = new StripeConfigProvider(config, stage)
   val payPalConfigProvider = new PayPalConfigProvider(config, stage)
   val salesforceConfigProvider = new SalesforceConfigProvider(config, stage)
   val zuoraConfigProvider = new ZuoraConfigProvider(config, stage)
   val emailServicesConfig = EmailServicesConfig.fromConfig(config)
-  val membersDataApiConfigProvider = new MembersDataServiceConfigProvider(config, stage)
 }

@@ -16,10 +16,10 @@ abstract class ServicesHandler[T <: StepFunctionUserState, R](servicesProvider: 
     ec: ExecutionContext
 ) extends FutureHandler[T, R] {
 
-  override protected def handlerFuture(input: T, error: Option[ExecutionError], context: Context) = {
-    servicesHandler(input, context, servicesProvider.forUser(input.user.isTestUser))
+  override protected def handlerFuture(input: T, error: Option[ExecutionError], requestInfo: RequestInfo, context: Context) = {
+    servicesHandler(input, requestInfo, context, servicesProvider.forUser(input.user.isTestUser))
   }
 
-  protected def servicesHandler(input: T, context: Context, services: Services): Future[R]
+  protected def servicesHandler(input: T, requestInfo: RequestInfo, context: Context, services: Services): Future[(R, RequestInfo)]
 
 }

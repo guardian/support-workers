@@ -5,10 +5,11 @@ import java.net.SocketTimeoutException
 import com.amazonaws.services.kms.model._
 import com.gu.paypal.PayPalError
 import com.gu.salesforce.Salesforce.SalesforceErrorResponse
-import com.gu.salesforce.Salesforce.SalesforceErrorResponse.expiredAuthenticationCode
+import com.gu.salesforce.Salesforce.SalesforceErrorResponse._
 import com.gu.stripe.Stripe
 import com.gu.support.workers.exceptions.RetryImplicits._
 import com.gu.support.workers.exceptions._
+import com.gu.zuora.model.response.{ZuoraError, ZuoraErrorResponse}
 import io.circe.ParsingFailure
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -44,6 +45,7 @@ class ErrorHandlerSpec extends FlatSpec with Matchers {
 
     //Salesforce
     new SalesforceErrorResponse("test", expiredAuthenticationCode).asRetryException shouldBe a[RetryUnlimited]
+    new SalesforceErrorResponse("test", rateLimitExceeded).asRetryException shouldBe a[RetryUnlimited]
     new SalesforceErrorResponse("", "").asRetryException shouldBe a[RetryNone]
 
     //Stripe
@@ -61,5 +63,15 @@ class ErrorHandlerSpec extends FlatSpec with Matchers {
     new InvalidGrantTokenException("").asRetryException shouldBe a[RetryNone]
     new DisabledException("").asRetryException shouldBe a[RetryLimited]
     new AWSKMSException("The security token included in the request is expired").asRetryException shouldBe a[RetryLimited]
+
+    //Zuora
+    ZuoraErrorResponse(false, List(ZuoraError("API_DISABLED", "tbc"))).asRetryException shouldBe a[RetryUnlimited]
+    ZuoraErrorResponse(false, List(ZuoraError("LOCK_COMPETITION", "tbc"))).asRetryException shouldBe a[RetryUnlimited]
+    ZuoraErrorResponse(false, List(ZuoraError("REQUEST_EXCEEDED_LIMIT", "tbc"))).asRetryException shouldBe a[RetryUnlimited]
+    ZuoraErrorResponse(false, List(ZuoraError("REQUEST_EXCEEDED_RATE", "tbc"))).asRetryException shouldBe a[RetryUnlimited]
+    ZuoraErrorResponse(false, List(ZuoraError("SERVER_UNAVAILABLE", "tbc"))).asRetryException shouldBe a[RetryUnlimited]
+    ZuoraErrorResponse(false, List(ZuoraError("UNKNOWN_ERROR", "Operation failed due to an unknown error."))).asRetryException shouldBe a[RetryUnlimited]
+    ZuoraErrorResponse(false, List(ZuoraError("TRANSACTION_FAILED", "Your card was declined"))).asRetryException shouldBe a[RetryNone]
+
   }
 }

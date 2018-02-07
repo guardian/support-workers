@@ -1,23 +1,27 @@
 Comment: Carries out the steps needed to create a Monthly Contributor
 StartAt: CreatePaymentMethod
+TimeoutSeconds: 86400
 States:
   CreatePaymentMethod:
     Type: Task
     Resource: "${CreatePaymentMethodLambda.Arn}"
     Next: CreateSalesforceContact
-    {{> stateMachineRetries}}
+    {{> retry}}
+    {{> catch}}
 
   CreateSalesforceContact:
     Type: Task
     Resource: "${CreateSalesforceContactLambda.Arn}"
     Next: CreateZuoraSubscription
-    {{> stateMachineRetries}}
+    {{> retry}}
+    {{> catch}}
 
   CreateZuoraSubscription:
     Type: Task
     Resource: "${CreateZuoraSubscriptionLambda.Arn}"
     Next: ParallelTasks
-    {{> stateMachineRetries}}
+    {{> retry}}
+    {{> catch}}
 
   ParallelTasks:
     Type: Parallel
@@ -34,33 +38,28 @@ States:
           Type: Task
           Resource: "${SendThankYouEmailLambda.Arn}"
           End: True
-          Retry: # We don't want to invoke the failure handler for the thank you email because signup has succeeded by this point
-          - ErrorEquals:
-            - com.gu.support.workers.exceptions.RetryLimited
-            IntervalSeconds: 1
-            MaxAttempts: 3
-            BackoffRate: 2
-          - ErrorEquals:
-            - com.gu.support.workers.exceptions.RetryUnlimited
-            IntervalSeconds: 1
-            BackoffRate: 2
-    - StartAt: UpdateMembersDataAPI
+          {{> retry}}
+    - StartAt: SendAcquisitionEvent
       States:
-        UpdateMembersDataAPI:
+        SendAcquisitionEvent:
           Type: Task
-          Resource: "${UpdateMembersDataAPILambda.Arn}"
+          Resource: "${SendAcquisitionEventLambda.Arn}"
           End: True
-          Retry: # We don't want to invoke the failure handler for the update members data API because signup has succeeded by this point
-          - ErrorEquals:
-            - com.gu.support.workers.exceptions.RetryLimited
-            IntervalSeconds: 1
-            MaxAttempts: 3
-            BackoffRate: 2
-          - ErrorEquals:
-            - com.gu.support.workers.exceptions.RetryUnlimited
-            IntervalSeconds: 1
-            BackoffRate: 2
+          {{> retry}}
     Next: WaitForBrowserPoll
+
+  FailureHandler:
+    Type: Task
+    Resource: "${FailureHandlerLambda.Arn}"
+    Next: SucceedOrFailChoice
+
+  SucceedOrFailChoice:
+    Type: Choice
+    Choices:
+      - Variable: "$.requestInfo.failed"
+        BooleanEquals: true
+        Next: FailState
+    Default: WaitForBrowserPoll
 
   WaitForBrowserPoll:
     Type: Wait
@@ -71,7 +70,6 @@ States:
       is created and the old is terminated.
     End: True
 
-  FailureHandler:
-    Type: Task
-    Resource: "${FailureHandlerLambda.Arn}"
-    Next: WaitForBrowserPoll
+  FailState:
+    Type: Fail
+

@@ -2,14 +2,20 @@ package com.gu.support.workers.errors
 
 import java.io.ByteArrayOutputStream
 
+import cats.syntax.either._
 import com.gu.config.Configuration
 import com.gu.okhttp.RequestRunners.configurableFutureRunner
 import com.gu.services.ServiceProvider
+import com.gu.stripe.Stripe.StripeError
 import com.gu.stripe.{Stripe, StripeService}
-import com.gu.support.workers.Fixtures.{createStripePaymentMethodContributionJson, wrapFixture}
+import com.gu.support.workers.Fixtures.{createStripePaymentMethodJson, wrapFixture}
 import com.gu.support.workers.LambdaSpec
 import com.gu.support.workers.exceptions.{RetryNone, RetryUnlimited}
 import com.gu.support.workers.lambdas.CreatePaymentMethod
+import com.gu.support.workers.model.JsonWrapper
+import com.gu.support.workers.{Fixtures, LambdaSpec}
+import com.gu.zuora.encoding.CustomCodecs.jsonWrapperDecoder
+import io.circe.parser.decode
 import io.circe.syntax._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -55,13 +61,41 @@ class StripeErrorsSpec extends LambdaSpec with MockWebServerCreator with MockSer
     val outStream = new ByteArrayOutputStream()
 
     a[RetryNone] should be thrownBy {
-      createPaymentMethod.handleRequest(wrapFixture(createStripePaymentMethodContributionJson), outStream, context)
+      createPaymentMethod.handleRequest(wrapFixture(createStripePaymentMethodJson), outStream, context)
     }
 
     server.shutdown()
   }
 
-  lazy private val timeoutServices = mockServices(
+  "Stripe error" should "deserialise correctly" in {
+    val err = decode[StripeError](
+      """{
+          "error": {
+            "message": "Your card was declined.",
+            "type": "card_error",
+            "param": "",
+            "code": "card_declined",
+            "decline_code": "generic_decline"
+          }
+        }
+      """
+    )
+    err.isRight should be(true)
+    err.right.get.code should be(Some("card_declined"))
+  }
+
+  "JsonWrapped error" should "deserialise correctly" in {
+    val stripeError = for {
+      wrapper <- decode[JsonWrapper](Fixtures.cardDeclinedJsonStripe).toOption
+      executionError <- wrapper.error
+      errorJson <- decode[ErrorJson](executionError.Cause).toOption
+      stripeError <- decode[StripeError](errorJson.errorMessage).toOption
+    } yield stripeError
+
+    stripeError.get.code should be(Some("card_declined"))
+  }
+
+  private lazy val timeoutServices = mockServices(
     s => s.stripeService,
     //Create a stripe service which will timeout after 1 millisecond
     new StripeService(Configuration.stripeConfigProvider.get(), configurableFutureRunner(1.milliseconds))

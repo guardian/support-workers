@@ -2,32 +2,38 @@ package com.gu.support.workers
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 
-import com.gu.support.workers.Fixtures.{createPayPalPaymentMethodDigitalBundleJson, wrapFixture}
+import com.gu.support.workers.Fixtures.{createPayPalPaymentMethodJson, wrapFixture}
 import com.gu.support.workers.lambdas._
+import com.gu.support.workers.model.JsonWrapper
 import com.gu.test.tags.annotations.IntegrationTest
-
 import scala.io.Source
 
 @IntegrationTest
 class EndToEndSpec extends LambdaSpec {
-  "The monthly contribution lambdas" should "chain successfully" in {
-    logger.info(createPayPalPaymentMethodDigitalBundleJson)
-    val output = wrapFixture(createPayPalPaymentMethodDigitalBundleJson)
+  "The monthly contribution lambdas" should "chain successfully" in runSignupWithCurrency(GBP)
+
+  they should "work with other currencies" in runSignupWithCurrency(EUR)
+
+  def runSignupWithCurrency(currency: Currency) {
+    logger.info(createPayPalPaymentMethodJson(currency))
+    val output = wrapFixture(createPayPalPaymentMethodJson())
       .chain(new CreatePaymentMethod())
       .chain(new CreateSalesforceContact())
       .chain(new CreateZuoraSubscription())
-      .parallel(new ContributionCompleted, new SendThankYouEmail(), new UpdateMembersDataAPI())
+      .parallel(new ContributionCompleted, new SendThankYouEmail())
       .last()
 
-    assertUnit(output)
+    val decoded = decode[List[JsonWrapper]](output.toString("utf-8"))
+    decoded.isRight should be(true)
+    decoded.right.get.size should be(2)
   }
 
   implicit class InputStreamChaining(val stream: InputStream) {
 
     def parallel(handlers: Handler[_, _]*): InputStream = {
       val listStartMarker = Array[Byte]('[')
-      val listEndMarker = Array[Byte](',')
-      val listSeparator = Array[Byte](']')
+      val listEndMarker = Array[Byte](']')
+      val listSeparator = Array[Byte](',')
 
       val output = new ByteArrayOutputStream()
 
