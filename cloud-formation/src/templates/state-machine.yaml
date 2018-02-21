@@ -52,6 +52,7 @@ States:
     Type: Task
     Resource: "${FailureHandlerLambda.Arn}"
     Next: SucceedOrFailChoice
+    {{> retry}}
 
   SucceedOrFailChoice:
     Type: Choice
