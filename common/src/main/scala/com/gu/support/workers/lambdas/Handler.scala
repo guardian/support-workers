@@ -50,9 +50,12 @@ abstract class FutureHandler[T, R](d: Option[Duration] = None)(
       handlerFuture(input, error, requestInfo, context),
       d.getOrElse(Duration(context.getRemainingTimeInMillis.toLong, MILLISECONDS))
     )
-    if (CustomPool.hasIncompleteTasks)
+    if (CustomPool.hasIncompleteTasks) {
       logger.warn(s"Incomplete futures detected in ${this.getClass.getSimpleName}")
-    result
+      (result._1, result._2.appendMessage(s"Incomplete futures detected in ${this.getClass.getSimpleName}"))
+    } else {
+      result
+    }
   }
 
 }
