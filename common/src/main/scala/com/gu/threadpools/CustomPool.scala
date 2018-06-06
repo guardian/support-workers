@@ -11,7 +11,7 @@ object CustomPool extends LazyLogging {
   private val ec = new ThreadPoolExecutor(4, 4, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
   implicit val executionContext: ExecutionContextExecutor = ExecutionContext.fromExecutor(ec)
 
-  def hasIncompleteTasks = {
+  def hasIncompleteTasks: Boolean = {
     ec.getCompletedTaskCount < ec.getTaskCount
   }
 
