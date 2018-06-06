@@ -1,10 +1,26 @@
 package com.gu.threadpools
 
-import java.util.concurrent.Executors
-import scala.concurrent.ExecutionContext
+import java.util.concurrent.{LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
 
-object CustomPool {
+import com.typesafe.scalalogging.LazyLogging
 
-  implicit val executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(4))
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
+
+object CustomPool extends LazyLogging {
+
+  private val ec = new ThreadPoolExecutor(4, 4, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
+  implicit val executionContext: ExecutionContextExecutor = ExecutionContext.fromExecutor(ec)
+
+  def hasIncompleteTasks = {
+    ec.getCompletedTaskCount < ec.getTaskCount
+  }
+
+  def awaitCompletion: Unit = {
+    while (hasIncompleteTasks) {
+      logger.info(s"Total taskCount: ${ec.getTaskCount}, completed: ${ec.getCompletedTaskCount}")
+      Thread.sleep(500)
+    }
+
+  }
 
 }

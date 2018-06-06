@@ -10,6 +10,7 @@ import com.gu.support.workers.LambdaSpec
 import com.gu.support.workers.lambdas.SendThankYouEmail
 import com.gu.support.workers.model.DirectDebitPaymentMethod
 import com.gu.test.tags.annotations.IntegrationTest
+import com.gu.threadpools.CustomPool
 import com.gu.threadpools.CustomPool.executionContext
 import io.circe.Json
 import io.circe.parser._
@@ -25,6 +26,7 @@ class SendThankYouEmailSpec extends LambdaSpec {
 
     sendThankYouEmail.handleRequest(wrapFixture(thankYouEmailJson), outStream, context)
 
+    CustomPool.hasIncompleteTasks should be(false)
     assertUnit(outStream)
   }
 
