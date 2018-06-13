@@ -14,7 +14,7 @@ abstract class LambdaSpec extends FlatSpec with Matchers with MockContext {
     Encoding.in[Unit](output.toInputStream).isSuccess should be(true)
 }
 abstract class AsyncLambdaSpec extends AsyncFlatSpec with Matchers {
-  implicit override def executionContext = scala.concurrent.ExecutionContext.Implicits.global
+  implicit override def executionContext = com.gu.threadpools.CustomPool.executionContext
 }
 
 trait MockContext extends MockitoSugar {

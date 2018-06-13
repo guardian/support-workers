@@ -8,8 +8,7 @@ import com.gu.support.workers.encoding.StateCodecs._
 import com.gu.support.workers.exceptions.SalesforceException
 import com.gu.support.workers.model.RequestInfo
 import com.gu.support.workers.model.monthlyContributions.state.{CreateSalesforceContactState, CreateZuoraSubscriptionState}
-
-import scala.concurrent.ExecutionContext.Implicits.global
+import com.gu.threadpools.CustomPool.executionContext
 
 class CreateSalesforceContact extends ServicesHandler[CreateSalesforceContactState, CreateZuoraSubscriptionState] {
 

@@ -1,13 +1,12 @@
 package com.gu.salesforce
 
-import cats.syntax.either._
 import com.gu.config.Configuration
 import com.gu.helpers.{Retry, WebServiceHelper}
+import com.gu.monitoring.SafeLogger
 import com.gu.okhttp.RequestRunners
 import com.gu.okhttp.RequestRunners.FutureHttpClient
 import com.gu.salesforce.Salesforce.{Authentication, SalesforceAuthenticationErrorResponse, SalesforceContactResponse, SalesforceErrorResponse, UpsertData}
 import com.gu.zuora.encoding.CustomCodecs
-import com.gu.monitoring.SafeLogger
 import io.circe
 import io.circe.Decoder
 import io.circe.parser._
@@ -54,7 +53,7 @@ class SalesforceService(config: SalesforceConfig, client: FutureHttpClient)(impl
  * is stale a new one is fetched
  */
 object AuthService {
-  import scala.concurrent.ExecutionContext.Implicits.global
+  import com.gu.threadpools.CustomPool.executionContext
 
   private val authRef = Ref[Map[String, Authentication]](Map())
 

@@ -5,9 +5,9 @@ import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder
 import com.amazonaws.services.sqs.model.{SendMessageRequest, SendMessageResult}
 import com.gu.aws.{AwsAsync, CredentialsProvider}
 import com.gu.i18n.Currency
-import com.gu.support.workers.model.{DirectDebitPaymentMethod, PaymentMethod}
-import com.gu.monitoring.SafeLogger._
 import com.gu.monitoring.SafeLogger
+import com.gu.monitoring.SafeLogger._
+import com.gu.support.workers.model.{DirectDebitPaymentMethod, PaymentMethod}
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 
@@ -82,6 +82,7 @@ class EmailService(config: EmailConfig, implicit val executionContext: Execution
   def send(fields: EmailFields): Future[SendMessageResult] = {
     SafeLogger.info(s"Sending message to SQS queue $queueUrl")
     val messageResult = AwsAsync(sqsClient.sendMessageAsync, new SendMessageRequest(queueUrl, fields.payload(config.dataExtensionName)))
+    SafeLogger.info(s"Sent async to SQS queue $queueUrl")
     messageResult.recover {
       case throwable =>
         SafeLogger.error(scrub"Failed to send message due to $queueUrl due to:", throwable)

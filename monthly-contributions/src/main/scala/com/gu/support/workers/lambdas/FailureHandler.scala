@@ -11,16 +11,15 @@ import com.gu.support.workers.encoding.StateCodecs._
 import com.gu.support.workers.model.monthlyContributions.Status
 import com.gu.support.workers.model.monthlyContributions.state.{CompletedState, FailureHandlerState}
 import com.gu.support.workers.model.{ExecutionError, RequestInfo}
+import com.gu.threadpools.CustomPool.executionContext
 import com.gu.zuora.model.response.{ZuoraError, ZuoraErrorResponse}
 import io.circe.Decoder
 import io.circe.parser.decode
 import org.joda.time.DateTime
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 class FailureHandler(emailService: EmailService)
     extends FutureHandler[FailureHandlerState, CompletedState] {
-  def this() = this(new EmailService(Configuration.emailServicesConfig.failed, global))
+  def this() = this(new EmailService(Configuration.emailServicesConfig.failed, executionContext))
 
   override protected def handlerFuture(
     state: FailureHandlerState,

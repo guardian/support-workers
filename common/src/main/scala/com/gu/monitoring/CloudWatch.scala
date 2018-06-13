@@ -6,7 +6,8 @@ import com.amazonaws.services.cloudwatch.{AmazonCloudWatchAsync, AmazonCloudWatc
 import com.gu.aws.{AwsAsync, CredentialsProvider}
 import com.gu.config.Configuration
 import com.gu.monitoring.CloudWatch.client
-import scala.concurrent.ExecutionContext.Implicits.global
+import com.gu.threadpools.CustomPool.executionContext
+
 import scala.concurrent.Future
 
 class CloudWatch(metrics: Dimension*) {

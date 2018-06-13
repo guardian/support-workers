@@ -12,7 +12,6 @@ import com.gu.test.tags.annotations.IntegrationTest
 import com.gu.zuora.encoding.CustomCodecs.{jsonWrapperDecoder, jsonWrapperEncoder}
 import io.circe.parser._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 
 @IntegrationTest

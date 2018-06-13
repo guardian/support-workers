@@ -52,6 +52,7 @@ abstract class FutureHandler[T, R](d: Option[Duration] = None)(
     )
     if (CustomPool.hasIncompleteTasks) {
       logger.warn(s"Incomplete futures detected in ${this.getClass.getSimpleName}")
+      CustomPool.awaitCompletion
       (result._1, result._2.appendMessage(s"Incomplete futures detected in ${this.getClass.getSimpleName}"))
     } else {
       result

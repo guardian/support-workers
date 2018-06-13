@@ -28,6 +28,7 @@ class SendThankYouEmailSpec extends LambdaSpec {
 
     CustomPool.hasIncompleteTasks should be(false)
     assertUnit(outStream)
+    CustomPool.awaitCompletion
   }
 
   ignore should "send an email" in {

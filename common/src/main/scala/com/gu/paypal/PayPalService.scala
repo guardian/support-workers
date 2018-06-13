@@ -6,11 +6,11 @@ import com.gu.config.Configuration
 import com.gu.monitoring.SafeLogger
 import com.gu.okhttp.RequestRunners.FutureHttpClient
 import com.gu.support.config.{PayPalConfig, Stages}
+import com.gu.threadpools.CustomPool.executionContext
 import com.netaporter.uri.QueryString
 import com.netaporter.uri.Uri.parseQuery
 import okhttp3.{FormBody, Request, Response}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Try
 

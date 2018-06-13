@@ -7,9 +7,8 @@ import com.gu.services.{ServiceProvider, Services}
 import com.gu.support.workers.encoding.StateCodecs._
 import com.gu.support.workers.model._
 import com.gu.support.workers.model.monthlyContributions.state.SendAcquisitionEventState
+import com.gu.threadpools.CustomPool.executionContext
 import ophan.thrift.{event => thrift}
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class SendAcquisitionEvent(serviceProvider: ServiceProvider = ServiceProvider)
     extends ServicesHandler[SendAcquisitionEventState, Unit] {

@@ -1,11 +1,10 @@
 package com.gu.monitoring.products
 
+import com.gu.monitoring.ProductDimensions._
 import com.gu.monitoring._
-import ProductDimensions._
+import com.gu.threadpools.CustomPool.executionContext
 
 import scala.concurrent.Future
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class RecurringContributionsMetrics(
   method: String,

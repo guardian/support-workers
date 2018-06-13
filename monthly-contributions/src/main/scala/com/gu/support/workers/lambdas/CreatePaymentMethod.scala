@@ -11,9 +11,9 @@ import com.gu.support.workers.encoding.StateCodecs._
 import com.gu.support.workers.lambdas.PaymentMethodExtensions.PaymentMethodExtension
 import com.gu.support.workers.model._
 import com.gu.support.workers.model.monthlyContributions.state.{CreatePaymentMethodState, CreateSalesforceContactState}
+import com.gu.threadpools.CustomPool.executionContext
 import com.typesafe.scalalogging.LazyLogging
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class CreatePaymentMethod(servicesProvider: ServiceProvider = ServiceProvider)

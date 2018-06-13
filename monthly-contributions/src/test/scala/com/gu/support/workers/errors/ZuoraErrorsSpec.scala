@@ -2,7 +2,6 @@ package com.gu.support.workers.errors
 
 import java.io.ByteArrayOutputStream
 
-import cats.syntax.either._
 import com.gu.config.Configuration
 import com.gu.monitoring.SafeLogger
 import com.gu.okhttp.RequestRunners.configurableFutureRunner
@@ -14,6 +13,7 @@ import com.gu.support.workers.lambdas.CreateZuoraSubscription
 import com.gu.support.workers.model.JsonWrapper
 import com.gu.support.workers.{Fixtures, LambdaSpec}
 import com.gu.test.tags.annotations.IntegrationTest
+import com.gu.threadpools.CustomPool.executionContext
 import com.gu.zuora.Fixtures.{incorrectPaymentMethod, invalidSubscriptionRequest}
 import com.gu.zuora.ZuoraService
 import com.gu.zuora.encoding.CustomCodecs.jsonWrapperDecoder
@@ -21,7 +21,6 @@ import com.gu.zuora.model.response.ZuoraErrorResponse
 import io.circe.parser.decode
 import org.scalatest.RecoverMethods
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 @IntegrationTest

@@ -10,8 +10,8 @@ import com.gu.support.workers.Fixtures.{createPayPalPaymentMethodJson, wrapFixtu
 import com.gu.support.workers.LambdaSpec
 import com.gu.support.workers.exceptions.RetryUnlimited
 import com.gu.support.workers.lambdas.CreatePaymentMethod
+import com.gu.threadpools.CustomPool.executionContext
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class PayPalErrorsSpec extends LambdaSpec with MockWebServerCreator with MockServicesCreator {

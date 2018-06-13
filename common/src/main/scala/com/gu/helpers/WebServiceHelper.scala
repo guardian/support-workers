@@ -2,13 +2,13 @@ package com.gu.helpers
 
 import com.gu.monitoring.SafeLogger
 import com.gu.okhttp.RequestRunners.FutureHttpClient
+import com.gu.threadpools.CustomPool.executionContext
 import io.circe
 import io.circe.parser._
 import io.circe.{Decoder, Json, Printer}
 import okhttp3._
 
 import scala.collection.immutable.Map.empty
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.reflect.{ClassTag, classTag}
 

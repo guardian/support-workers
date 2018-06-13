@@ -15,19 +15,19 @@ import com.gu.support.workers.model.monthlyContributions.Status
 import com.gu.support.workers.model.monthlyContributions.state.CompletedState
 import com.gu.support.workers.{Fixtures, LambdaSpec}
 import com.gu.test.tags.annotations.IntegrationTest
+import com.gu.threadpools.CustomPool.executionContext
 import com.gu.zuora.encoding.CustomCodecs._
 import com.gu.zuora.model.response.{ZuoraError, ZuoraErrorResponse}
 import io.circe.parser.decode
 import org.joda.time.DateTime
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 
 @IntegrationTest
 class FailureHandlerSpec extends LambdaSpec {
 
   "EmailService" should "send a failure email" in {
-    val service = new EmailService(Configuration.emailServicesConfig.failed, global)
+    val service = new EmailService(Configuration.emailServicesConfig.failed, executionContext)
     val email = "rupert.bates@theguardian.com"
     service
       .send(EmailFields(email, DateTime.now(), 5, Currency.GBP, "UK", "", "monthly-contribution"))

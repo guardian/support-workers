@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 @IntegrationTest
 class SalesforceSpec extends AsyncFlatSpec with Matchers with LazyLogging {
 
-  implicit override def executionContext = scala.concurrent.ExecutionContext.Implicits.global
+  implicit override def executionContext = com.gu.threadpools.CustomPool.executionContext
 
   "AuthService" should "be able to retrieve an authtoken" in {
     val authService = new AuthService(Configuration.salesforceConfigProvider.get())

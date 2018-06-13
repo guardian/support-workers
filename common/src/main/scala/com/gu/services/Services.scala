@@ -6,9 +6,9 @@ import com.gu.ophan.OphanService
 import com.gu.paypal.PayPalService
 import com.gu.salesforce.SalesforceService
 import com.gu.stripe.StripeService
+import com.gu.threadpools.CustomPool.executionContext
 import com.gu.zuora.ZuoraService
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 trait ServiceProvider {
