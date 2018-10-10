@@ -9,7 +9,7 @@ object ZuoraConfig {
   type RatePlanId = String
 }
 
-case class ZuoraContributionConfig(productRatePlanId: RatePlanId, productRatePlanChargeId: RatePlanId)
+case class ZuoraContributionConfig(productRatePlanId: RatePlanId, productRatePlanChargeId: RatePlanId /*really?*/ )
 
 case class ZuoraDigitalPackConfig(monthly: RatePlanId, quarterly: RatePlanId, annual: RatePlanId)
 

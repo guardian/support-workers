@@ -1,10 +1,13 @@
 package com.gu.zuora
 
+import java.time.LocalDateTime
+
 import com.gu.config.Configuration.zuoraConfigProvider
 import com.gu.i18n.Currency.{AUD, EUR, GBP, USD}
 import com.gu.monitoring.SafeLogger
 import com.gu.monitoring.SafeLogger._
 import com.gu.okhttp.RequestRunners
+import com.gu.support.workers.lambdas.GetRecurringSubscription
 import com.gu.support.workers.model.Monthly
 import com.gu.test.tags.annotations.IntegrationTest
 import com.gu.zuora.Fixtures._
@@ -28,14 +31,14 @@ class ZuoraSpec extends AsyncFlatSpec with Matchers {
   }
 
   it should "retrieve account ids from an Identity id" in {
-    uatService.getAccountIds("30001758").map {
+    uatService.getAccountFields("30001758").map {
       response =>
         response.nonEmpty should be(true)
     }
   }
 
   it should "be resistant to 'ZOQL injection'" in {
-    a[NumberFormatException] should be thrownBy uatService.getAccountIds("30000701' or status = 'Active")
+    a[NumberFormatException] should be thrownBy uatService.getAccountFields("30000701' or status = 'Active")
   }
 
   it should "retrieve subscriptions from an account id" in {
@@ -46,25 +49,31 @@ class ZuoraSpec extends AsyncFlatSpec with Matchers {
     }
   }
 
-  it should "be able to find a monthly recurring subscription" in {
-    uatService.getRecurringSubscription("30001758", Monthly).map {
-      response =>
-        response.isDefined should be(true)
-        response.get.ratePlans.head.productName should be("Contributor")
+  it should "be able to find a monthly recurring subscription just after creation" in {
+    val justAfterCreation = LocalDateTime.of(2017, 12, 7, 15, 47, 22)
+    GetRecurringSubscription(uatService, justAfterCreation, "30001758", Monthly).map {
+      _.flatMap(_.ratePlans.headOption.map(_.productName)) should be(Some("Contributor"))
+    }
+  }
+
+  it should "ignore a monthly recurring subscription that was created earlier" in {
+    val aWhileAfterCreation = LocalDateTime.of(2017, 12, 7, 16, 47, 22)
+    GetRecurringSubscription(uatService, aWhileAfterCreation, "30001758", Monthly).map {
+      _ should be(None)
     }
   }
 
   it should "ignore active subscriptions which do not have a recurring contributor plan" in {
-    uatService.getRecurringSubscription("18390845", Monthly).map {
-      response =>
-        response.isDefined should be(false)
+    val justAfterCreation = LocalDateTime.of(2017, 12, 7, 16, 34, 47)
+    GetRecurringSubscription(uatService, justAfterCreation, "18390845", Monthly).map {
+      _ should be(None)
     }
   }
 
   it should "ignore cancelled recurring contributions" in {
-    uatService.getRecurringSubscription("30001780", Monthly).map {
-      response =>
-        response.isDefined should be(false)
+    val justAfterCreation = LocalDateTime.of(2017, 12, 7, 14, 22, 36)
+    GetRecurringSubscription(uatService, justAfterCreation, "30001780", Monthly).map {
+      _ should be(None)
     }
   }
 
