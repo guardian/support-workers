@@ -1,5 +1,7 @@
 package com.gu.support.workers.lambdas
 
+import java.time.LocalDateTime
+
 import com.amazonaws.services.lambda.runtime.Context
 import com.gu.config.Configuration.zuoraConfigProvider
 import com.gu.monitoring.SafeLogger
@@ -25,7 +27,7 @@ class CreateZuoraSubscription(servicesProvider: ServiceProvider = ServiceProvide
     context: Context,
     services: Services
   ): FutureHandlerResult =
-    services.zuoraService.getRecurringSubscription(state.user.id, state.product.billingPeriod).flatMap {
+    GetRecurringSubscription(services.zuoraService, LocalDateTime.now(), state.user.id, state.product.billingPeriod).flatMap {
       case Some(sub) => skipSubscribe(state, requestInfo, sub)
       case None => subscribe(state, requestInfo, services)
     }
