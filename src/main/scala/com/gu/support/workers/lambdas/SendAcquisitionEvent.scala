@@ -3,6 +3,7 @@ package com.gu.support.workers.lambdas
 import com.amazonaws.services.lambda.runtime.Context
 import com.gu.acquisition.model.OphanIds
 import com.gu.acquisition.typeclasses.AcquisitionSubmissionBuilder
+import com.gu.monitoring.SafeLogger
 import com.gu.services.{ServiceProvider, Services}
 import com.gu.support.workers.encoding.StateCodecs._
 import com.gu.support.workers.model._
@@ -59,6 +60,7 @@ object SendAcquisitionEvent {
         }
 
       override def buildAcquisition(state: SendAcquisitionEventState): Either[String, thrift.Acquisition] = {
+        SafeLogger.info("About to submit " + state.toString)
         val (productType, productAmount) = state.product match {
           case c: Contribution => (OphanProduct.RecurringContribution, c.amount.toDouble)
           case _: DigitalPack => (OphanProduct.DigitalSubscription, 0D) //TODO: Send the real amount in the acquisition event
