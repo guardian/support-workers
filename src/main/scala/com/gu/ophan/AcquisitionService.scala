@@ -1,5 +1,9 @@
 package com.gu.ophan
 
+import com.amazonaws.auth.{AWSCredentialsProviderChain, InstanceProfileCredentialsProvider}
+import com.amazonaws.auth.profile.ProfileCredentialsProvider
+import com.gu.acquisition.services.DefaultAcquisitionServiceConfig
+import com.gu.config.Configuration
 import com.gu.okhttp.RequestRunners
 
 object AcquisitionService {
@@ -8,6 +12,16 @@ object AcquisitionService {
     if (isTestService) {
       com.gu.acquisition.services.MockAcquisitionService
     } else {
-      com.gu.acquisition.services.AcquisitionService.prod(RequestRunners.client)
+
+      val credentialsProvider = new AWSCredentialsProviderChain(
+        new ProfileCredentialsProvider("membership"),
+        InstanceProfileCredentialsProvider.getInstance()
+      )
+
+      val config = DefaultAcquisitionServiceConfig(
+        credentialsProvider,
+        kinesisStreamName = Configuration.kinesisStreamName
+      )
+      com.gu.acquisition.services.AcquisitionService.prod(config)(RequestRunners.client)
     }
 }
