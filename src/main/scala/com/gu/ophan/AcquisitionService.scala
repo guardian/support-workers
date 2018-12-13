@@ -1,7 +1,6 @@
 package com.gu.ophan
 
 import com.amazonaws.auth.{AWSCredentialsProviderChain, InstanceProfileCredentialsProvider}
-import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.gu.acquisition.services.DefaultAcquisitionServiceConfig
 import com.gu.config.Configuration
 import com.gu.okhttp.RequestRunners
@@ -14,7 +13,6 @@ object AcquisitionService {
     } else {
 
       val credentialsProvider = new AWSCredentialsProviderChain(
-        new ProfileCredentialsProvider("membership"),
         InstanceProfileCredentialsProvider.getInstance()
       )
 
