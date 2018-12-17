@@ -1,7 +1,6 @@
 package com.gu.ophan
 
-import com.amazonaws.auth.{AWSCredentialsProviderChain, InstanceProfileCredentialsProvider}
-import com.gu.acquisition.services.DefaultAcquisitionServiceConfig
+import com.gu.acquisition.services.LambdaConfig
 import com.gu.config.Configuration
 import com.gu.okhttp.RequestRunners
 
@@ -12,12 +11,7 @@ object AcquisitionService {
       com.gu.acquisition.services.MockAcquisitionService
     } else {
 
-      val credentialsProvider = new AWSCredentialsProviderChain(
-        InstanceProfileCredentialsProvider.getInstance()
-      )
-
-      val config = DefaultAcquisitionServiceConfig(
-        credentialsProvider,
+      val config = LambdaConfig(
         kinesisStreamName = Configuration.kinesisStreamName
       )
       com.gu.acquisition.services.AcquisitionService.prod(config)(RequestRunners.client)
