@@ -18,7 +18,7 @@ Parameters:
     Description: ARN of the Ophan cross-account role
   KinesisStreamArn:
     Type: String
-    Description: ARN of the kinesis stream to write events to
+    Description: ARN of the kinesis stream to write acquisition events to
 Conditions:
   CreateProdResources: !Equals [!Ref "Stage", "PROD"]
   CreateCodeResources: !Equals [!Ref "Stage", "CODE"]
