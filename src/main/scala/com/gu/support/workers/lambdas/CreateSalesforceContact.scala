@@ -23,6 +23,7 @@ class CreateSalesforceContact extends ServicesHandler[CreateSalesforceContactSta
       state.user.lastName,
       state.user.state,
       Some("n1 9gu"),
+      Some("hi it is a city"),
       state.user.country.name,
       state.user.telephoneNumber,
       state.user.allowMembershipMail,
