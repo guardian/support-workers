@@ -88,7 +88,8 @@ object SendAcquisitionEvent {
       override def buildAcquisition(state: SendAcquisitionEventState): Either[String, thrift.Acquisition] = {
         val (productType, productAmount) = state.product match {
           case c: Contribution => (OphanProduct.RecurringContribution, c.amount.toDouble)
-          case _: DigitalPack => (OphanProduct.DigitalSubscription, 0D) //TODO: Send the real amount in the acquisition event
+          case d: DigitalPack => (OphanProduct.DigitalSubscription, 0D) //TODO: Send the real amount in the acquisition event
+          case p: Paper => (OphanProduct.PrintSubscription, 0D) //TODO:
         }
         Either.fromOption(
           state.acquisitionData.map { data =>

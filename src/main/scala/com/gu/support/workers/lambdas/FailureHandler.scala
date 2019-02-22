@@ -9,7 +9,7 @@ import com.gu.support.encoding.CustomCodecs._
 import com.gu.support.encoding.ErrorJson
 import com.gu.support.workers.CheckoutFailureReasons._
 import com.gu.support.workers.states.{CheckoutFailureState, FailureHandlerState}
-import com.gu.support.workers.{Contribution, DigitalPack, ExecutionError, RequestInfo}
+import com.gu.support.workers._
 import com.gu.support.zuora.api.response.{ZuoraError, ZuoraErrorResponse}
 import io.circe.Decoder
 import io.circe.generic.auto._
@@ -39,6 +39,7 @@ class FailureHandler(emailService: EmailService) extends FutureHandler[FailureHa
     val emailFields = state.product match {
       case c: Contribution => FailedContributionEmailFields(email = state.user.primaryEmailAddress, IdentityUserId(state.user.id))
       case d: DigitalPack => FailedDigitalPackEmailFields(email = state.user.primaryEmailAddress, IdentityUserId(state.user.id))
+      case p: Paper => FailedDigitalPackEmailFields(email = state.user.primaryEmailAddress, IdentityUserId(state.user.id)) //TODO!!!
     }
     SafeLogger.info(s"Sending a failure email. Email fields: $emailFields")
     emailService.send(emailFields)
