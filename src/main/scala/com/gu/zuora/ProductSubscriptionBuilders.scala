@@ -24,8 +24,8 @@ object ProductSubscriptionBuilders {
     val ratePlans: Seq[ProductRatePlan[Product]] = getRatePlans(catalog.DigitalPack)
 
     val maybeProductRatePlanId: Option[ProductRatePlanId] = productType match {
-      case dp: DigitalPack => ratePlans.find(x => x.billingPeriod == dp.billingPeriod) map (_.id)
-      case p: Paper => ratePlans.find(x => x.fulfilmentOptions == p.fulfilmentOptions && x.productOptions == p.productOptions) map (_.id)
+      case dp: DigitalPack => ratePlans.find(rp => rp.billingPeriod == dp.billingPeriod) map (_.id)
+      case p: Paper => ratePlans.find(rp => rp.fulfilmentOptions == p.fulfilmentOptions && rp.productOptions == p.productOptions) map (_.id)
     }
 
     Try(maybeProductRatePlanId.get) match {
@@ -85,7 +85,9 @@ object ProductSubscriptionBuilders {
     ): SubscriptionData = {
 
       val contractEffectiveDate = LocalDate.now(DateTimeZone.UTC)
-      val contractAcceptanceDate = LocalDate.now(DateTimeZone.UTC) //TODO!!!!
+
+      //TODO this will eventually match the first delivery date. This will follow once support-frontend starts sending it.
+      val contractAcceptanceDate = LocalDate.now(DateTimeZone.UTC)
 
       val productRatePlanId = getProductRatePlanId(catalog.Paper, paper, isTestUser)
 

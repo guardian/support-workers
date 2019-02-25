@@ -85,6 +85,17 @@ class CreateZuoraSubscriptionSpec extends LambdaSpec with MockServicesCreator {
     sendThankYouEmail._1.subscriptionNumber.length should be > 0
   }
 
+  "CreateZuoraSubscription lambda" should "create an everyday paper subscription" in {
+    val createZuora = new CreateZuoraSubscription(mockServiceProvider)
+
+    val outStream = new ByteArrayOutputStream()
+
+    createZuora.handleRequest(wrapFixture(createEverydayPaperSubscriptionJson), outStream, context)
+
+    val sendThankYouEmail = Encoding.in[SendThankYouEmailState](outStream.toInputStream).get
+    sendThankYouEmail._1.subscriptionNumber.length should be > 0
+  }
+
   val realZuoraService = new ZuoraService(zuoraConfigProvider.get(false), configurableFutureRunner(60.seconds))
 
   val realPromotionService = new PromotionService(promotionsConfigProvider.get(false))
