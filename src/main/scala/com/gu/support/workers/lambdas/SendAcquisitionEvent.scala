@@ -89,7 +89,7 @@ object SendAcquisitionEvent {
         val (productType, productAmount) = state.product match {
           case c: Contribution => (OphanProduct.RecurringContribution, c.amount.toDouble)
           case d: DigitalPack => (OphanProduct.DigitalSubscription, 0D) //TODO: Send the real amount in the acquisition event
-          case p: Paper => (OphanProduct.PrintSubscription, 0D) //TODO:
+          case p: Paper => (OphanProduct.PrintSubscription, 0D) //TODO: same as above
         }
         Either.fromOption(
           state.acquisitionData.map { data =>

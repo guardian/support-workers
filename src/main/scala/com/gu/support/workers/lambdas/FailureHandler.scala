@@ -8,6 +8,7 @@ import com.gu.stripe.Stripe.StripeError
 import com.gu.support.encoding.CustomCodecs._
 import com.gu.support.encoding.ErrorJson
 import com.gu.support.workers.CheckoutFailureReasons._
+import com.gu.support.workers._
 import com.gu.support.workers.states.{CheckoutFailureState, FailureHandlerState}
 import com.gu.support.workers._
 import com.gu.support.zuora.api.response.{ZuoraError, ZuoraErrorResponse}
